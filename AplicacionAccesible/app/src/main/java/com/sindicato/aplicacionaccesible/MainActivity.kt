@@ -41,7 +41,11 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+
+
             var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
+
+            // Columnas se mantienen también si se rota la pantalla
             var columnCount by rememberSaveable { mutableIntStateOf(2) }
 
             AplicacionAccesibleTheme(appTheme = currentTheme) {
@@ -89,10 +93,12 @@ fun MainScreen(
                     }) {
                         Icon(Icons.Default.Settings, contentDescription = "Cambiar Tema")
                     }
+
+                    // Botón para cambiar el número de columnas en la grilla
                     if (selectedTab == 0) {
                         IconButton(onClick = {
-                            val nextCols = if (columnCount >= 4) 2 else columnCount + 1
-                            onColumnCountChange(nextCols)
+                            val nextCols = if (columnCount >= 4) 2 else columnCount + 1 // anillo (2-3-4) que arranca de 2
+                            onColumnCountChange(nextCols) // Se actualiza la cantidad de columnas y triggerea recomposición de la UI
                         }) {
                             Icon(Icons.Default.Menu, contentDescription = "Columnas: $columnCount")
                         }
@@ -136,6 +142,8 @@ fun MainScreen(
 @Composable
 fun SoundGrid(columns: Int) {
     val sounds = listOf("Timbre", "Aplauso", "Alarma", "Pito", "Campana", "Grito")
+
+    // LazyVerticalGrid se recompone inmediatamente cuando la cantidad de columans cambian
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         contentPadding = PaddingValues(8.dp),
