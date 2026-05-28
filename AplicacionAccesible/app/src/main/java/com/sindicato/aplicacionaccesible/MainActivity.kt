@@ -18,16 +18,26 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import com.sindicato.aplicacionaccesible.data.AppDatabase
+import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
+import com.sindicato.aplicacionaccesible.ui.signlanguage.SignLanguageGrid
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
-import java.util.*
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Seed the database
+        val dao = AppDatabase.getDatabase(applicationContext).signLanguageDao()
+        lifecycleScope.launch {
+            DatabaseSeeder.seedDatabase(dao)
+        }
         
         setContent {
             var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
@@ -116,7 +126,7 @@ fun MainScreen(
             when (selectedTab) {
                 0 -> SoundGrid(columnCount)
                 1 -> ComunicacionScreen()
-                2 -> SignLanguageGrid() // Se instancia desde SignLanguageView.kt
+                2 -> SignLanguageGrid()
             }
         }
     }

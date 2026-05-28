@@ -1,4 +1,4 @@
-package com.sindicato.aplicacionaccesible
+package com.sindicato.aplicacionaccesible.ui.signlanguage
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -13,22 +13,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sindicato.aplicacionaccesible.R
+import com.sindicato.aplicacionaccesible.data.SignLanguageEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignLanguageGrid() {
-    var selectedWord by rememberSaveable { mutableStateOf<String?>(null) }
+fun SignLanguageGrid(viewModel: SignLanguageViewModel = viewModel()) {
+    val signItems by viewModel.signItems.collectAsState()
+    var selectedItem by rememberSaveable { mutableStateOf<SignLanguageEntity?>(null) }
     
-    val signs = listOf(
-        "Hola", "Yo", "Gracias", "De nada", "Chau", "Saludar",
-        "Nombre", "Apellido", "Interprete", "Oyente",
-        "Buenos Días", "Buenas Tardes", "Buenas Noches", "Sordo/a"
-    )
-
-    if (selectedWord == null) {
+    if (selectedItem == null) {
         // Vista de Grilla con Texto (Actuando como iconos)
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -36,9 +35,9 @@ fun SignLanguageGrid() {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(signs) { sign ->
+            items(signItems) { item ->
                 Card(
-                    onClick = { selectedWord = sign },
+                    onClick = { selectedItem = item },
                     modifier = Modifier
                         .height(100.dp)
                         .fillMaxWidth(),
@@ -51,7 +50,7 @@ fun SignLanguageGrid() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = sign,
+                            text = item.word,
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
@@ -61,13 +60,19 @@ fun SignLanguageGrid() {
             }
         }
     } else {
-        // Vista de Detalle con la imagen de la seña
-        SignLanguageDetail(word = selectedWord!!, onBack = { selectedWord = null })
+        // Vista de Detalle con la imagen de la seña desde la base de datos
+        SignLanguageDetail(item = selectedItem!!, onBack = { selectedItem = null })
     }
 }
 
 @Composable
-fun SignLanguageDetail(word: String, onBack: () -> Unit) {
+fun SignLanguageDetail(item: SignLanguageEntity, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val imageRes = remember(item.imageName) {
+        val resId = context.resources.getIdentifier(item.imageName, "drawable", context.packageName)
+        if (resId != 0) resId else R.drawable.ic_launcher_foreground
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,7 +88,7 @@ fun SignLanguageDetail(word: String, onBack: () -> Unit) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = word, style = MaterialTheme.typography.headlineMedium)
+            Text(text = item.word, style = MaterialTheme.typography.headlineMedium)
         }
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -98,8 +103,8 @@ fun SignLanguageDetail(word: String, onBack: () -> Unit) {
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Image(
-                    painter = painterResource(id = getDrawableId(word)),
-                    contentDescription = "Seña de $word",
+                    painter = painterResource(id = imageRes),
+                    contentDescription = "Seña de ${item.word}",
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                     contentScale = ContentScale.Fit
                 )
@@ -109,30 +114,16 @@ fun SignLanguageDetail(word: String, onBack: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            "Representación en lengua de señas para '$word'.",
+            "Representación en lengua de señas para '${item.word}'.",
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-    }
-}
-
-fun getDrawableId(word: String): Int {
-    return when (word.lowercase().replace(" ", "").replace("/", "").replace("í", "i").replace("á", "a")) {
-        "hola" -> R.drawable.hola
-        "yo" -> R.drawable.yo
-        "gracias" -> R.drawable.gracias
-        "denada" -> R.drawable.denada
-        "chau" -> R.drawable.chau
-        "saludar" -> R.drawable.saludar
-        "nombre" -> R.drawable.nombre
-        "apellido" -> R.drawable.apellido
-        "interprete" -> R.drawable.interprete
-        "oyente" -> R.drawable.oyente
-        "buenosdias" -> R.drawable.buenosdias
-        "buenastardes" -> R.drawable.buenastardes
-        "buenasnoches" -> R.drawable.buenasnoches
-        "sordo" -> R.drawable.sordo
-        "sordoa" -> R.drawable.sordo
-        else -> R.drawable.ic_launcher_foreground
+        
+        // Espacio para futura funcionalidad de audio (mencionada por el usuario)
+        if (item.audioName != null) {
+            Button(onClick = { /* Implementar reproducción de audio */ }) {
+                Text("Escuchar pronunciación")
+            }
+        }
     }
 }
