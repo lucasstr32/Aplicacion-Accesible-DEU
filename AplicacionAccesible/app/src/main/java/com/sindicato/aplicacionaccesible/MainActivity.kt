@@ -5,7 +5,6 @@ import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -20,8 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
@@ -127,7 +124,7 @@ fun MainScreen(
             when (selectedTab) {
                 0 -> SoundGrid(columnCount)
                 1 -> TextToSpeechSection(onSpeak)
-                2 -> SignLanguageGrid()
+                2 -> SignLanguageGrid() // Se instancia desde SignLanguageView.kt
             }
         }
     }
@@ -173,33 +170,6 @@ fun TextToSpeechSection(onSpeak: (String) -> Unit) {
             enabled = text.isNotBlank()
         ) {
             Text("Leer en voz alta")
-        }
-    }
-}
-
-@Composable
-fun SignLanguageGrid() {
-    // Para prototipo, usamos iconos o placeholders si no hay recursos de imagen
-    val signs = listOf("Hola", "Gracias", "Por favor", "Adiós", "Ayuda", "Sí", "No")
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(signs) { sign ->
-            Card(
-                modifier = Modifier.height(150.dp).fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.Face, contentDescription = null, modifier = Modifier.size(64.dp))
-                    Text(sign, style = MaterialTheme.typography.bodyLarge)
-                }
-            }
         }
     }
 }
