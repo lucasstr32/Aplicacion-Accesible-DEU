@@ -5,15 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -24,17 +21,30 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
-
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 
 
 @Composable
 @Preview()
 fun SoundboardPreview(){
     val viewModel = SoundboardViewModel()
+    val mockTemplates = listOf(
+        Template("Fireside", listOf(SoundButton("Crackle", 0))),
+        Template("Cyberpunk", listOf(SoundButton("Neon", 1))),
+        Template("Nature", listOf(SoundButton("Rain", 2))),
+        Template("Office", listOf(SoundButton("Typewriter", 3))),
+        Template("Gym", listOf(SoundButton("Whistle", 4)))
+    )
+
+    // 3. Add them to the ViewModel (Assuming you have an add function)
+    mockTemplates.forEach { viewModel.addTemplate(it.name) }
+
+    // Set an initial selection
+    viewModel.currentTemplateIndex = 0
     Soundboard(viewModel)
 }
 
@@ -86,7 +96,11 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
             }
         },
         title = {
-            LazyRow(modifier = Modifier.fillMaxWidth()) {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp), // Space between chips
+                contentPadding = PaddingValues(horizontal = 8.dp)   // Padding at start/end
+            ) {
                 itemsIndexed(viewModel.templates) { index, template ->
                     FilterChip(
                         selected = viewModel.currentTemplateIndex == index,
