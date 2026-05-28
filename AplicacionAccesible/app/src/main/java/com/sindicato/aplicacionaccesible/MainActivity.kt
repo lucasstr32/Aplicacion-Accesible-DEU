@@ -22,10 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
 import java.util.*
+import com.sindicato.aplicacionaccesible.ui.components.SoundGrid
+import com.sindicato.aplicacionaccesible.ui.components.Soundboard
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
 
 class MainActivity : ComponentActivity() {
     private var tts: TextToSpeech? = null
@@ -66,6 +70,21 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 }
+
+
+@Preview()
+@Composable
+fun MainScreenPreview() {
+    val viewModel = SoundboardViewModel()
+    MainScreen(
+        currentTheme = AppTheme.LIGHT,
+        onThemeChange = {},
+        columnCount = 2,
+        onColumnCountChange = {},
+        onSpeak = {}
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,7 +150,7 @@ fun MainScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
-                0 -> SoundGrid(columnCount)
+                0 -> Soundboard(SoundboardViewModel())
                 1 -> TextToSpeechSection(onSpeak)
                 2 -> SignLanguageGrid()
             }
@@ -139,27 +158,7 @@ fun MainScreen(
     }
 }
 
-@Composable
-fun SoundGrid(columns: Int) {
-    val sounds = listOf("Timbre", "Aplauso", "Alarma", "Pito", "Campana", "Grito")
 
-    // LazyVerticalGrid se recompone inmediatamente cuando la cantidad de columans cambian
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        contentPadding = PaddingValues(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(sounds) { sound ->
-            Button(
-                onClick = { /* Reproducir sonido */ },
-                modifier = Modifier.height(100.dp).fillMaxWidth()
-            ) {
-                Text(sound)
-            }
-        }
-    }
-}
 
 @Composable
 fun TextToSpeechSection(onSpeak: (String) -> Unit) {

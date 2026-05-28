@@ -4,17 +4,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
-class SoundGridViewModel {
+class SoundboardViewModel {
 
     //
     private val _templates = mutableListOf<Template>()
     val templates: List<Template> = _templates
 
     var currentTemplateIndex by mutableIntStateOf(0) // actual template
-    var idEditMode by mutableStateOf(false) // indica si estamos en modo edición
+    var isEditMode by mutableStateOf(false) // indica si estamos en modo edición
     var columnCount by mutableIntStateOf(2) // cantidad de columnas
 
     fun addTempalte(name: String){
@@ -33,6 +31,14 @@ class SoundGridViewModel {
 
     fun updateButton(templateId: String, button: SoundButton){
         // Lógica para reemplazar o añadir boton en una posición de la grilla
+    }
+
+    fun getIsEditMode(): Boolean{
+        return isEditMode
+    }
+
+    fun toggleEditMode(){
+        isEditMode = !isEditMode
     }
 
 
