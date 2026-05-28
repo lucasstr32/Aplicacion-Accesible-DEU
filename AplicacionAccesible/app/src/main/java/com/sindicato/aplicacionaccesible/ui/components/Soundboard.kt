@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -18,8 +19,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,7 +46,7 @@ fun SoundboardPreview(){
         Template("Gym", listOf(SoundButton("Whistle", 4)))
     )
 
-    // 3. Add them to the ViewModel (Assuming you have an add function)
+    // Add them to the ViewModel
     mockTemplates.forEach { viewModel.addTemplate(it.name) }
 
     // Set an initial selection
@@ -73,14 +79,8 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
 
             if (buttonAtPosition != null) {
                 // Occupied Cell
-//                DraggableSoundButton(
-//                    button = buttonAtPosition,
-//                    isEditMode = viewModel.isEditMode,
-//                    onDelete = { /* Show Confirmation */ }
-//                )
             } else if (viewModel.isEditMode) {
                 // Empty Cell in Edit Mode
-                //PlaceholderButton(onClick = { /* Show Customization Dialog for index */ })
             }
         }
     }
@@ -89,17 +89,59 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundboardTopBar(viewModel: SoundboardViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+    var newTemplateName by remember { mutableStateOf("") }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDialog = false
+                newTemplateName = ""
+            },
+            title = { Text("New Template") },
+            text = {
+                TextField(
+                    value = newTemplateName,
+                    onValueChange = { newTemplateName = it },
+                    label = { Text("Template Name") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newTemplateName.isNotBlank()) {
+                            viewModel.addTemplate(newTemplateName)
+                            showDialog = false
+                            newTemplateName = ""
+                        }
+                    }
+                ) {
+                    Text("Add")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showDialog = false
+                    newTemplateName = ""
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = { /* Show Add Dialog */ }) {
+            IconButton(onClick = { showDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Template")
             }
         },
         title = {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp), // Space between chips
-                contentPadding = PaddingValues(horizontal = 8.dp)   // Padding at start/end
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
                 itemsIndexed(viewModel.templates) { index, template ->
                     FilterChip(

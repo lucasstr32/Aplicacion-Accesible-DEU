@@ -2,20 +2,20 @@ package com.sindicato.aplicacionaccesible.ui.screens.soundgrid
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 class SoundboardViewModel {
 
-    //
-    private val _templates = mutableListOf<Template>()
+    private val _templates = mutableStateListOf<Template>()
     val templates: List<Template> = _templates
 
     var currentTemplateIndex by mutableIntStateOf(0) // actual template
     var isEditMode by mutableStateOf(false) // indica si estamos en modo edición
     var columnCount by mutableIntStateOf(2) // cantidad de columnas
 
-    fun addTempalte(name: String){
+    fun addTemplate(name: String) {
         _templates.add(Template(name = name))
         currentTemplateIndex = _templates.size - 1
     }
@@ -40,13 +40,4 @@ class SoundboardViewModel {
     fun toggleEditMode(){
         isEditMode = !isEditMode
     }
-
-    fun addTemplate(name: String) {
-        _templates.add(Template(name))
-        currentTemplateIndex = _templates.size - 1
-    }
-
-
-
-
 }
