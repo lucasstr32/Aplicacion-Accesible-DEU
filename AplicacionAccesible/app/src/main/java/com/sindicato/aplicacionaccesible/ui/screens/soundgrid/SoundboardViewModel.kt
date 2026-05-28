@@ -1,5 +1,7 @@
 package com.sindicato.aplicacionaccesible.ui.screens.soundgrid
 
+import android.content.Context
+import android.media.MediaPlayer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -11,40 +13,17 @@ class SoundboardViewModel {
     private val _templates = mutableStateListOf<Template>()
     val templates: List<Template> = _templates
 
-    var currentTemplateIndex by mutableIntStateOf(0) // actual template
-    var isEditMode by mutableStateOf(false) // indica si estamos en modo edición
-    var columnCount by mutableIntStateOf(2) // cantidad de columnas
+    var currentTemplateIndex by mutableIntStateOf(0)
+    var isEditMode by mutableStateOf(false)
+    var columnCount by mutableIntStateOf(2)
 
+    private var mediaPlayer: MediaPlayer? = null
 
-    init{
-        var defaultButtons = listOf(
-            SoundButton("Ayuda", 0),
-            SoundButton("Aviso", 1),
-            SoundButton("Aplausos", 2),
-            SoundButton("Advertencia", 3),
-            SoundButton("Beso", 4)
-        )
-        _templates.add(Template("Default", defaultButtons))
-
-        var defaultButtons2 = listOf(
-            SoundButton("A", 0),
-            SoundButton("B", 1),
-            SoundButton("C", 2),
-            SoundButton("D", 3),
-            SoundButton("E", 4),
-            SoundButton("F", 5),
-            SoundButton("G", 6),
-            SoundButton("H", 7),
-            SoundButton("I", 8),
-            SoundButton("J", 9),
-            SoundButton("K", 10),
-            SoundButton("L", 11),
-            SoundButton("M", 12),
-            SoundButton("N", 13),
-            SoundButton("O", 14)
-        )
-
-        _templates.add(Template("Alfabeto", defaultButtons2))
+    init {
+        _templates.add(Template("Default", listOf(
+            SoundButton("Bomb", 0, SoundEffect.BOMB),
+            SoundButton("Kiss", 1, SoundEffect.KISS)
+        )))
     }
 
     fun addTemplate(name: String) {
@@ -52,24 +31,22 @@ class SoundboardViewModel {
         currentTemplateIndex = _templates.size - 1
     }
 
-    fun deleteCurrentTemplate(){
-        if(_templates.isNotEmpty()){
-            _templates.removeAt(currentTemplateIndex)
-            if(currentTemplateIndex >= _templates.size){
-                currentTemplateIndex = _templates.size - 1
-            }
-        }
-    }
-
-    fun updateButton(templateId: String, button: SoundButton){
-        // Lógica para reemplazar o añadir boton en una posición de la grilla
-    }
-
-    fun getIsEditMode(): Boolean{
-        return isEditMode
-    }
-
-    fun toggleEditMode(){
+    fun toggleEditMode() {
         isEditMode = !isEditMode
+    }
+
+    fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, position: Int) {
+        val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
+        val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } + 
+                            SoundButton(name, position, soundEffect)
+        
+        _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
+    }
+
+    fun playSound(context: Context, soundEffect: SoundEffect) {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
+        mediaPlayer?.start()
     }
 }

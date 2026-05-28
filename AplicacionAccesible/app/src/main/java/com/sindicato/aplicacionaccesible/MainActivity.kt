@@ -30,6 +30,7 @@ import java.util.*
 import com.sindicato.aplicacionaccesible.ui.components.SoundGrid
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
+import com.sindicato.aplicacionaccesible.ui.sound.SoundEffectManager
 
 class MainActivity : ComponentActivity() {
     private var tts: TextToSpeech? = null
@@ -37,7 +38,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
+        SoundEffectManager.init(applicationContext)
+
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale.getDefault()
@@ -65,6 +68,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        super.onDestroy()
+        SoundEffectManager.release()
         tts?.stop()
         tts?.shutdown()
         super.onDestroy()

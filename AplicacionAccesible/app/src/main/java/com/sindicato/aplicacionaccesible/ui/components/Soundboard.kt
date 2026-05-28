@@ -1,13 +1,15 @@
 package com.sindicato.aplicacionaccesible.ui.components
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,12 +17,17 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,10 +41,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 
@@ -46,19 +54,6 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 @Preview()
 fun SoundboardPreview(){
     val viewModel = SoundboardViewModel()
-    val mockTemplates = listOf(
-        Template("Fireside", listOf(SoundButton("Crackle", 0))),
-        Template("Cyberpunk", listOf(SoundButton("Neon", 1))),
-        Template("Nature", listOf(SoundButton("Rain", 2))),
-        Template("Office", listOf(SoundButton("Typewriter", 3))),
-        Template("Gym", listOf(SoundButton("Whistle", 4)))
-    )
-
-    // Add them to the ViewModel
-    mockTemplates.forEach { viewModel.addTemplate(it.name) }
-
-    // Set an initial selection
-    viewModel.currentTemplateIndex = 0
     Soundboard(viewModel)
 }
 
@@ -68,39 +63,123 @@ fun SoundboardPreview(){
 fun Soundboard(viewModel: SoundboardViewModel){
     Scaffold(
         topBar = { SoundboardTopBar(viewModel) },
-        content = { SoundGrid(viewModel) },
+        content = { padding -> 
+            Box(modifier = Modifier.padding(padding)) {
+                SoundGrid(viewModel)
+            }
+        },
     )
-
 }
 
 @Composable
 fun SoundGrid(viewModel: SoundboardViewModel) {
-
-    // Toma el template actual de la lista de templates segun un indice
+    val context = LocalContext.current
     val currentTemplate = viewModel.templates.getOrNull(viewModel.currentTemplateIndex)
-    val totalCells = 20 // Define a max capacity
+    val totalCells = 20
 
-    Log.d("SoundGrid", "currentTemplate: ${currentTemplate?.buttons}")
+    var showDialogAtPosition by remember { mutableStateOf<Int?>(null) }
+
+    showDialogAtPosition?.let { position ->
+        AddButtonDialog(
+            onDismiss = { showDialogAtPosition = null },
+            onConfirm = { name, effect ->
+                viewModel.addButtonToCurrentTemplate(name, effect, position)
+                showDialogAtPosition = null
+            }
+        )
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(viewModel.columnCount),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(totalCells) { index ->
             val buttonAtPosition = currentTemplate?.buttons?.find { it.gridPosition == index }
 
             if (buttonAtPosition != null) {
-                // Occupied Cell
                 SoundButtonItem(
                     name = buttonAtPosition.name,
-                    onClick = { }
+                    onClick = {
+                        if (!viewModel.isEditMode) {
+                            viewModel.playSound(context, buttonAtPosition.soundEffect)
+                        }
+                    }
                 )
             } else if (viewModel.isEditMode) {
-                // Empty Cell in Edit Mode
-                EmptyCellPlaceholder(onClick = { /* Open Dialog to Add */ })
+                EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
             }
         }
     }
+}
+
+@Composable
+fun AddButtonDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, SoundEffect) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var selectedEffect by remember { mutableStateOf(SoundEffect.BOMB) }
+    var expanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Sound Button") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Button Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Box {
+                    OutlinedButton(
+                        onClick = { expanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(selectedEffect.displayName)
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        SoundEffect.entries.forEach { effect ->
+                            DropdownMenuItem(
+                                text = { Text(effect.displayName) },
+                                onClick = {
+                                    selectedEffect = effect
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onConfirm(name, selectedEffect)
+                    }
+                }
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,7 +250,7 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
         },
         actions = {
             TextButton(onClick = { viewModel.toggleEditMode() }) {
-                Text(if (viewModel.getIsEditMode()) "Done" else "Edit")
+                Text(if (viewModel.isEditMode) "Done" else "Edit")
             }
         }
     )
@@ -199,7 +278,7 @@ fun EmptyCellPlaceholder(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, Color.Gray)
     ) {
         Icon(Icons.Default.Add, contentDescription = "Add button")
