@@ -36,8 +36,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -118,6 +120,17 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
     }
 }
 
+@Preview(name = "Add Button Dialog", showBackground = true)
+@Composable
+fun AddButtonDialogPreview() {
+    AddButtonDialog(
+        onDismiss = { /* Do nothing */ },
+        onConfirm = { name, effect -> println("Preview: $name with $effect") }
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddButtonDialog(
     onDismiss: () -> Unit,
@@ -127,41 +140,74 @@ fun AddButtonDialog(
     var selectedEffect by remember { mutableStateOf(SoundEffect.BOMB) }
     var expanded by remember { mutableStateOf(false) }
 
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Button", "Speech")
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Sound Button") },
+        title = {
+
+            Column {
+                Text("Add Element")
+                // TabRow for switching between Button and Speech
+                androidx.compose.material3.TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        androidx.compose.material3.Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = { Text(title) }
+                        )
+                    }
+                }
+            }
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Button Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Box {
-                    OutlinedButton(
-                        onClick = { expanded = true },
+
+                if(selectedTabIndex == 0) {
+                    TextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Button Name") },
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(selectedEffect.displayName)
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        SoundEffect.entries.forEach { effect ->
-                            DropdownMenuItem(
-                                text = { Text(effect.displayName) },
-                                onClick = {
-                                    selectedEffect = effect
-                                    expanded = false
-                                }
-                            )
+                    )
+
+                    Box {
+                        OutlinedButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(selectedEffect.displayName)
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                         }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            SoundEffect.entries.forEach { effect ->
+                                DropdownMenuItem(
+                                    text = { Text(effect.displayName) },
+                                    onClick = {
+                                        selectedEffect = effect
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = androidx.compose.ui.Alignment.Center
+                    ) {
+                        Text("Speech configuration coming soon...", color = Color.Gray)
                     }
                 }
             }
