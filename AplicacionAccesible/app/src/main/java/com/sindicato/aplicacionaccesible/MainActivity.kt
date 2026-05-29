@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
@@ -64,6 +66,32 @@ fun MainScreen(
     onColumnCountChange: (Int) -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var showHelpDialog by remember { mutableStateOf(false) }
+
+    val helpContent = when (selectedTab) {
+        0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas desde el menú superior (icono de tres líneas)."
+        1 -> "Comunicación" to "Aquí tienes dos modos: 'Texto a Voz' para escribir lo que quieres que la app diga, y 'Voz a Texto' para que la app transcriba lo que hablas. Cambia entre ellos usando el selector superior."
+        else -> "Lenguaje de Señas" to "Explora palabras en lenguaje de señas. Toca una palabra en la lista para ver su representación visual. Puedes volver a la lista usando el botón de retroceso en el detalle."
+    }
+
+    if (showHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text("Entendido")
+                }
+            },
+            title = {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Help, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Ayuda: ${helpContent.first}")
+                }
+            },
+            text = { Text(helpContent.second) }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -118,6 +146,19 @@ fun MainScreen(
                     onClick = { selectedTab = 2 },
                     icon = { Icon(Icons.Default.Menu, contentDescription = null) },
                     label = { Text("Señas") }
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showHelpDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Help,
+                    contentDescription = "Botón de Ayuda"
                 )
             }
         }
