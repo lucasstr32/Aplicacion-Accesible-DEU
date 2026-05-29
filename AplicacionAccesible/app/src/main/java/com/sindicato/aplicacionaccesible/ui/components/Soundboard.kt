@@ -46,7 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
-import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
+import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 
 
@@ -78,6 +78,8 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
     val totalCells = 20
 
     var showDialogAtPosition by remember { mutableStateOf<Int?>(null) }
+
+
 
     showDialogAtPosition?.let { position ->
         AddButtonDialog(

@@ -1,4 +1,4 @@
-package com.sindicato.aplicacionaccesible.ui.screens.soundgrid
+package com.sindicato.aplicacionaccesible.viewmodel
 
 import android.content.Context
 import android.media.MediaPlayer
@@ -7,12 +7,16 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
+import kotlin.collections.plus
 
-class SoundboardViewModel {
+class SoundboardViewModel: ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
     val templates: List<Template> = _templates
-
     var currentTemplateIndex by mutableIntStateOf(0)
     var isEditMode by mutableStateOf(false)
     var columnCount by mutableIntStateOf(2)
@@ -20,10 +24,14 @@ class SoundboardViewModel {
     private var mediaPlayer: MediaPlayer? = null
 
     init {
-        _templates.add(Template("Default", listOf(
-            SoundButton("Bomb", 0, SoundEffect.BOMB),
-            SoundButton("Kiss", 1, SoundEffect.KISS)
-        )))
+        _templates.add(
+            Template(
+                "Default", listOf(
+                    SoundButton("Bomb", 0, SoundEffect.BOMB),
+                    SoundButton("Kiss", 1, SoundEffect.KISS)
+                )
+            )
+        )
     }
 
     fun addTemplate(name: String) {
@@ -37,9 +45,9 @@ class SoundboardViewModel {
 
     fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
-        val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } + 
-                            SoundButton(name, position, soundEffect)
-        
+        val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } +
+                SoundButton(name, position, soundEffect)
+
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
     }
 

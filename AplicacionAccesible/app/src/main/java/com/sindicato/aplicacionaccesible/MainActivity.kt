@@ -25,11 +25,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.data.AppDatabase
 import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
-import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
+import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.signlanguage.SignLanguageGrid
 import com.sindicato.aplicacionaccesible.ui.sound.SoundEffectManager
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
@@ -53,13 +54,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
             var columnCount by rememberSaveable { mutableIntStateOf(2) }
+            val soundboardViewModel: SoundboardViewModel = viewModel()
 
             AplicacionAccesibleTheme(appTheme = currentTheme) {
                 MainScreen(
                     currentTheme = currentTheme,
                     onThemeChange = { currentTheme = it },
                     columnCount = columnCount,
-                    onColumnCountChange = { columnCount = it }
+                    onColumnCountChange = { columnCount = it },
+                    soundboardViewModel = soundboardViewModel
                 )
             }
         }
@@ -76,12 +79,13 @@ class MainActivity : ComponentActivity() {
 @Preview()
 @Composable
 fun MainScreenPreview() {
-    val viewModel = SoundboardViewModel()
+    val viewModel: SoundboardViewModel = viewModel()
     MainScreen(
         currentTheme = AppTheme.LIGHT,
         onThemeChange = {},
         columnCount = 2,
         onColumnCountChange = {},
+        soundboardViewModel = viewModel
     )
 }
 
@@ -92,7 +96,8 @@ fun MainScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
     columnCount: Int,
-    onColumnCountChange: (Int) -> Unit
+    onColumnCountChange: (Int) -> Unit,
+    soundboardViewModel: SoundboardViewModel
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -157,7 +162,7 @@ fun MainScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
-                0 -> Soundboard(SoundboardViewModel())
+                0 -> Soundboard(soundboardViewModel)
                 1 -> ComunicacionScreen()
                 2 -> SignLanguageGrid()
             }
