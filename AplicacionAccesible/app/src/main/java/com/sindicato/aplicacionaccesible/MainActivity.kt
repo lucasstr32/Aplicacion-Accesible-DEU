@@ -1,9 +1,11 @@
 package com.sindicato.aplicacionaccesible
 
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,19 +18,31 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
+import com.sindicato.aplicacionaccesible.ui.sound.SoundEffectManager
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
 import java.util.*
 
 class MainActivity : ComponentActivity() {
+    private var tts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
+
+        SoundEffectManager.init(applicationContext)
+
+
         setContent {
             var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
             var columnCount by rememberSaveable { mutableIntStateOf(2) }
@@ -43,7 +57,28 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SoundEffectManager.release()
+        tts?.stop()
+        tts?.shutdown()
+    }
 }
+
+
+@Preview()
+@Composable
+fun MainScreenPreview() {
+    val viewModel = SoundboardViewModel()
+    MainScreen(
+        currentTheme = AppTheme.LIGHT,
+        onThemeChange = {},
+        columnCount = 2,
+        onColumnCountChange = {},
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,14 +93,14 @@ fun MainScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
                         when(selectedTab) {
                             0 -> "Sonidos"
                             1 -> "Comunicación"
                             else -> "Señas"
                         }
-                    ) 
+                    )
                 },
                 actions = {
                     IconButton(onClick = {
@@ -78,10 +113,12 @@ fun MainScreen(
                     }) {
                         Icon(Icons.Default.Settings, contentDescription = "Cambiar Tema")
                     }
+
+                    // Botón para cambiar el número de columnas en la grilla
                     if (selectedTab == 0) {
                         IconButton(onClick = {
-                            val nextCols = if (columnCount >= 4) 2 else columnCount + 1
-                            onColumnCountChange(nextCols)
+                            val nextCols = if (columnCount >= 4) 2 else columnCount + 1 // anillo (2-3-4) que arranca de 2
+                            onColumnCountChange(nextCols) // Se actualiza la cantidad de columnas y triggerea recomposición de la UI
                         }) {
                             Icon(Icons.Default.Menu, contentDescription = "Columnas: $columnCount")
                         }
@@ -114,30 +151,14 @@ fun MainScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
-                0 -> SoundGrid(columnCount)
+                0 -> Soundboard(SoundboardViewModel())
                 1 -> ComunicacionScreen()
-                2 -> SignLanguageGrid() // Se instancia desde SignLanguageView.kt
+                2 -> SignLanguageGrid()
             }
         }
     }
 }
 
-@Composable
-fun SoundGrid(columns: Int) {
-    val sounds = listOf("Timbre", "Aplauso", "Alarma", "Pito", "Campana", "Grito")
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        contentPadding = PaddingValues(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(sounds) { sound ->
-            Button(
-                onClick = { /* Reproducir sonido */ },
-                modifier = Modifier.height(100.dp).fillMaxWidth()
-            ) {
-                Text(sound)
-            }
-        }
-    }
-}
+
+
+
