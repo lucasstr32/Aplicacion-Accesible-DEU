@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
@@ -53,7 +54,7 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 @Composable
 @Preview()
 fun SoundboardPreview(){
-    val viewModel = SoundboardViewModel()
+    val viewModel: SoundboardViewModel = viewModel()
     Soundboard(viewModel)
 }
 

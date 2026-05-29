@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     currentTheme = currentTheme,
                     onThemeChange = { currentTheme = it },
-                    columnCount = columnCount,
                     onColumnCountChange = { columnCount = it },
                     soundboardViewModel = soundboardViewModel
                 )
@@ -83,7 +82,6 @@ fun MainScreenPreview() {
     MainScreen(
         currentTheme = AppTheme.LIGHT,
         onThemeChange = {},
-        columnCount = 2,
         onColumnCountChange = {},
         soundboardViewModel = viewModel
     )
@@ -95,11 +93,11 @@ fun MainScreenPreview() {
 fun MainScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
-    columnCount: Int,
     onColumnCountChange: (Int) -> Unit,
     soundboardViewModel: SoundboardViewModel
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val nextCols: Int
 
     Scaffold(
         topBar = {
@@ -128,10 +126,11 @@ fun MainScreen(
                     // Botón para cambiar el número de columnas en la grilla
                     if (selectedTab == 0) {
                         IconButton(onClick = {
+                            val columnCount = soundboardViewModel.columnCount
                             val nextCols = if (columnCount >= 4) 2 else columnCount + 1 // anillo (2-3-4) que arranca de 2
-                            onColumnCountChange(nextCols) // Se actualiza la cantidad de columnas y triggerea recomposición de la UI
+                            soundboardViewModel.columnCount = nextCols // Se actualiza la cantidad de columnas y triggerea recomposición de la UI
                         }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Columnas: $columnCount")
+                            Icon(Icons.Default.Menu, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
                         }
                     }
                 }
