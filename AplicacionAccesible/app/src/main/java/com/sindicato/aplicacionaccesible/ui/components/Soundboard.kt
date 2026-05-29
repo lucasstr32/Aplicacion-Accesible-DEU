@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -57,6 +59,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -111,7 +114,8 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
             onConfirm = { name, effect, selectedColor, selectedIcon ->
                 viewModel.addButtonToCurrentTemplate(name, effect, selectedColor, selectedIcon, position)
                 showDialogAtPosition = null
-            }
+            },
+            soundboardViewModel = viewModel
         )
     }
 
@@ -164,7 +168,8 @@ fun SoundButtonItem(button: SoundButton, onClick: () -> Unit) {
 fun AddButtonDialogPreview() {
     AddButtonDialog(
         onDismiss = { /* Do nothing */ },
-        onConfirm = { name, effect, color, iconRes -> println("Preview: $name with $effect") }
+        onConfirm = { name, effect, color, iconRes -> println("Preview: $name with $effect")},
+        soundboardViewModel = viewModel()
     )
 }
 
@@ -185,7 +190,8 @@ val availableIcons = listOf(
 @Composable
 fun AddButtonDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, SoundEffect, Long, Int) -> Unit
+    onConfirm: (String, SoundEffect, Long, Int) -> Unit,
+    soundboardViewModel: SoundboardViewModel
 ) {
     var name by remember { mutableStateOf("") }
     var selectedEffect by remember { mutableStateOf(SoundEffect.BOMB) }
@@ -196,6 +202,8 @@ fun AddButtonDialog(
 
     var selectedIconIndex by remember { mutableIntStateOf(0) }
     var selectedColor by remember { mutableStateOf(buttonColors[0]) }
+
+    val context = LocalContext.current
 
 
     AlertDialog(
@@ -246,7 +254,31 @@ fun AddButtonDialog(
                         ) {
                             SoundEffect.entries.forEach { effect ->
                                 DropdownMenuItem(
-                                    text = { Text(effect.displayName) },
+                                    text = {
+                                        // Layout the name and the play button side-by-side
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(effect.displayName, modifier = Modifier.weight(1f))
+
+                                            // The Preview Play Button
+                                            IconButton(
+                                                onClick = {
+                                                    // This plays the sound without closing the menu
+                                                    soundboardViewModel.playSound(context, effect)
+                                                },
+                                                modifier = Modifier.size(32.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.PlayArrow,
+                                                    contentDescription = "Preview sound",
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    },
                                     onClick = {
                                         selectedEffect = effect
                                         expanded = false
