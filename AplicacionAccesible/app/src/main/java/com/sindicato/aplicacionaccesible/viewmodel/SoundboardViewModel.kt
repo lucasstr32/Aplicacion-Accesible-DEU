@@ -27,9 +27,10 @@ class SoundboardViewModel: ViewModel() {
         _templates.add(
             Template(
                 "Default", listOf(
-                    SoundButton("Bomb", 0, SoundEffect.BOMB),
-                    SoundButton("Kiss", 1, SoundEffect.KISS)
+                    SoundButton("Bomb", 0, SoundEffect.BOMB, 0xFF0000FF, 1),
+                    SoundButton("Kiss", 1, SoundEffect.KISS, 0xFFFF0000, 2)
                 )
+
             )
         )
     }
@@ -43,10 +44,10 @@ class SoundboardViewModel: ViewModel() {
         isEditMode = !isEditMode
     }
 
-    fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, position: Int) {
+    fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, color: Long, iconRes: Int, position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } +
-                SoundButton(name, position, soundEffect)
+                SoundButton(name, position, soundEffect, color, iconRes)
 
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
     }
