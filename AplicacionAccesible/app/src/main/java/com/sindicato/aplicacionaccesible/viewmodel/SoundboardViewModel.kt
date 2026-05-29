@@ -1,12 +1,17 @@
 package com.sindicato.aplicacionaccesible.viewmodel
 
 import android.content.Context
+import android.graphics.Color
 import android.media.MediaPlayer
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
@@ -44,12 +49,15 @@ class SoundboardViewModel: ViewModel() {
         isEditMode = !isEditMode
     }
 
-    fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, color: Long, iconRes: Int, position: Int) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, colorLong: Long, iconRes: Int, position: Int) {
+        //val colorLong = color.toArgb().toLong()
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } +
-                SoundButton(name, position, soundEffect, color, iconRes)
+                SoundButton(name, position, soundEffect, colorLong, iconRes)
 
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
+        Log.d("SoundboardViewModel", "Added button with: $name, $soundEffect, $colorLong, $iconRes, $position")
     }
 
     fun playSound(context: Context, soundEffect: SoundEffect) {

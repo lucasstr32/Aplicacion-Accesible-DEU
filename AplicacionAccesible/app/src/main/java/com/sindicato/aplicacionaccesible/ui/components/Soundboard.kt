@@ -1,6 +1,8 @@
 package com.sindicato.aplicacionaccesible.ui.components
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
@@ -56,6 +59,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,6 +71,7 @@ import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview()
 fun SoundboardPreview(){
@@ -75,6 +80,7 @@ fun SoundboardPreview(){
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Soundboard(viewModel: SoundboardViewModel){
@@ -88,6 +94,7 @@ fun Soundboard(viewModel: SoundboardViewModel){
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SoundGrid(viewModel: SoundboardViewModel) {
     val context = LocalContext.current
@@ -101,8 +108,8 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
     showDialogAtPosition?.let { position ->
         AddButtonDialog(
             onDismiss = { showDialogAtPosition = null },
-            onConfirm = { name, effect, color, iconRes ->
-                viewModel.addButtonToCurrentTemplate(name, effect, color, iconRes, position)
+            onConfirm = { name, effect, selectedColor, selectedIcon ->
+                viewModel.addButtonToCurrentTemplate(name, effect, selectedColor, selectedIcon, position)
                 showDialogAtPosition = null
             }
         )
@@ -120,7 +127,7 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
 
             if (buttonAtPosition != null) {
                 SoundButtonItem(
-                    name = buttonAtPosition.name,
+                    button = buttonAtPosition,
                     onClick = {
                         if (!viewModel.isEditMode) {
                             viewModel.playSound(context, buttonAtPosition.soundEffect)
@@ -133,6 +140,24 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
         }
     }
 }
+
+
+@Composable
+fun SoundButtonItem(button: SoundButton, onClick: () -> Unit) {
+    ElevatedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(button.color))
+    ) {
+        Icon(availableIcons[button.iconRes], contentDescription = null)
+        Text(text = button.name)
+    }
+}
+
+
 
 @Preview(name = "Add Button Dialog", showBackground = true)
 @Composable
@@ -280,8 +305,10 @@ fun AddButtonDialog(
             TextButton(
                 onClick = {
                     if (name.isNotBlank()) {
+                        val colorLong = selectedColor.toArgb().toLong()
+
                         onConfirm(name, selectedEffect,
-                            selectedColor.value.toLong(), selectedIconIndex)
+                            colorLong, selectedIconIndex)
                     }
                 }
             ) {
@@ -371,18 +398,7 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
 }
 
 
-@Composable
-fun SoundButtonItem(name: String, onClick: () -> Unit) {
-    ElevatedButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Text(text = name)
-    }
-}
+
 
 
 @Composable
