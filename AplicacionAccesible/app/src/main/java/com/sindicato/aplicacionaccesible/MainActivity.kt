@@ -1,27 +1,21 @@
 package com.sindicato.aplicacionaccesible
 
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -88,6 +82,32 @@ fun MainScreen(
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val nextCols: Int
+    var showHelpDialog by remember { mutableStateOf(false) }
+
+    val helpContent = when (selectedTab) {
+        0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas desde el menú superior (icono de tres líneas)."
+        1 -> "Comunicación" to "Aquí tienes dos modos: 'Texto a Voz' para escribir lo que quieres que la app diga, y 'Voz a Texto' para que la app transcriba lo que hablas. Cambia entre ellos usando el selector superior."
+        else -> "Lenguaje de Señas" to "Explora palabras en lenguaje de señas. Toca una palabra en la lista para ver su representación visual. Puedes volver a la lista usando el botón de retroceso en el detalle."
+    }
+
+    if (showHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text("Entendido")
+                }
+            },
+            title = {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Help, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Ayuda: ${helpContent.first}")
+                }
+            },
+            text = { Text(helpContent.second) }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -145,6 +165,19 @@ fun MainScreen(
                     onClick = { selectedTab = 2 },
                     icon = { Icon(Icons.Default.Menu, contentDescription = null) },
                     label = { Text("Señas") }
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showHelpDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Help,
+                    contentDescription = "Botón de Ayuda"
                 )
             }
         }
