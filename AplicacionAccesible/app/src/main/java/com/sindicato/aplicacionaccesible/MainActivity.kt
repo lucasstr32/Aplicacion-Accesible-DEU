@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -75,17 +76,6 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@Preview()
-@Composable
-fun MainScreenPreview() {
-    val viewModel: SoundboardViewModel = viewModel()
-    MainScreen(
-        currentTheme = AppTheme.LIGHT,
-        onThemeChange = {},
-        onColumnCountChange = {},
-        soundboardViewModel = viewModel
-    )
-}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -172,3 +162,36 @@ fun MainScreen(
 
 
 
+@Preview(
+    name = "Small phone",
+    device = Devices.PIXEL_4A,
+    showBackground = true
+)
+@Preview(
+    name = "Standard phone",
+    device = Devices.PIXEL_6,
+    showBackground = true
+)
+@Preview(
+    name = "Large phone",
+    device = Devices.PIXEL_8,
+    showBackground = true
+)
+@Preview(
+    name = "Tablet",
+    device = Devices.NEXUS_10,
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 1280
+)
+@Preview()
+@Composable
+fun MainScreenPreview() {
+    val viewModel: SoundboardViewModel = viewModel()
+    MainScreen(
+        currentTheme = AppTheme.LIGHT,
+        onThemeChange = {},
+        onColumnCountChange = {},
+        soundboardViewModel = viewModel
+    )
+}
