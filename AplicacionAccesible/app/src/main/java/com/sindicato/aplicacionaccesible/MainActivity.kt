@@ -24,24 +24,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import com.sindicato.aplicacionaccesible.data.AppDatabase
+import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundboardViewModel
+import com.sindicato.aplicacionaccesible.ui.signlanguage.SignLanguageGrid
 import com.sindicato.aplicacionaccesible.ui.sound.SoundEffectManager
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
-import java.util.*
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private var tts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
         SoundEffectManager.init(applicationContext)
 
+        // Seed the database
+        val dao = AppDatabase.getDatabase(applicationContext).signLanguageDao()
+        lifecycleScope.launch {
+            DatabaseSeeder.seedDatabase(dao)
+        }
 
         setContent {
             var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
@@ -61,8 +68,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         SoundEffectManager.release()
-        tts?.stop()
-        tts?.shutdown()
+
     }
 }
 
@@ -93,14 +99,14 @@ fun MainScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
+                title = { 
                     Text(
                         when(selectedTab) {
                             0 -> "Sonidos"
                             1 -> "Comunicación"
                             else -> "Señas"
                         }
-                    )
+                    ) 
                 },
                 actions = {
                     IconButton(onClick = {
