@@ -1,10 +1,12 @@
 package com.sindicato.aplicacionaccesible
 
+import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -40,6 +42,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -78,6 +81,7 @@ class MainActivity : ComponentActivity() {
 
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -151,7 +155,7 @@ fun MainScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
-                0 -> Soundboard(soundboardViewModel)
+                0 -> Soundboard(soundboardViewModel, currentTheme == AppTheme.COLORBLIND)
                 1 -> ComunicacionScreen()
                 2 -> SignLanguageGrid()
             }
@@ -162,6 +166,7 @@ fun MainScreen(
 
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(
     name = "Small phone",
     device = Devices.PIXEL_4A,

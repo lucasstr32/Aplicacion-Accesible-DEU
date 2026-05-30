@@ -11,5 +11,6 @@ enum class SoundEffect(val displayName: String, val resourceId: Int) {
     FF7_VICTORY("FF7 Victory", R.raw.ff7_victory),
     POLICE_ALERT("Police Alert", R.raw.alertapolicia),
     ILLUMINATI("Illuminati", R.raw.illuminaticonfirmed),
-    TRICK_JUMP("Trick Jump", R.raw.se_objsn_trickjump_ok)
+    TRICK_JUMP("Trick Jump", R.raw.se_objsn_trickjump_ok),
+    CORRETE_CHE("Correte Che", R.raw.correteche_ciclovia)
 }

@@ -1,6 +1,8 @@
 package com.sindicato.aplicacionaccesible.ui.theme
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
@@ -31,3 +33,21 @@ val ColorblindBackground = Color(0xFFFFFFFF)
 val ColorblindSurface = Color(0xFFFFFFFF)
 val ColorblindOnBackground = Color(0xFF000000)
 val ColorblindOnSurface = Color(0xFF000000)
+
+// Colorblind-safe palette (High contrast and distinct hues)
+val SafeRed = Color(0xFFD55E00)    // Vermillion
+val SafeBlue = Color(0xFF0072B2)   // Blue
+val SafeYellow = Color(0xFFF0E442) // Yellow
+val SafeGreen = Color(0xFF009E73)  // Bluish Green
+val SafeOrange = Color(0xFFE69F00) // Orange
+val SafePurple = Color(0xFFCC79A7) // Reddish Purple
+
+val SafeColors = listOf(SafeRed, SafeBlue, SafeYellow, SafeGreen, SafeOrange, SafePurple)
+
+
+@Composable
+fun getContrastColor(backgroundColor: Color): Color {
+    // If luminance > 0.5, the color is "light", so use black text.
+    // Otherwise, use white.
+    return if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
+}

@@ -12,7 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 enum class AppTheme {
-    LIGHT, DARK, COLORBLIND
+    LIGHT, DARK, COLORBLIND;
+
 }
 
 private val LightColorScheme = lightColorScheme(

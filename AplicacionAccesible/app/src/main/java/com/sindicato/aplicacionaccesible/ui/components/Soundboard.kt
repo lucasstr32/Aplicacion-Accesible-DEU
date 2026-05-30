@@ -72,6 +72,9 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
+import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
+import com.sindicato.aplicacionaccesible.ui.theme.SafeColors
+import com.sindicato.aplicacionaccesible.ui.theme.getContrastColor
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -79,19 +82,19 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 @Preview()
 fun SoundboardPreview(){
     val viewModel: SoundboardViewModel = viewModel()
-    Soundboard(viewModel)
+    Soundboard(viewModel, false)
 }
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun Soundboard(viewModel: SoundboardViewModel){
+fun Soundboard(viewModel: SoundboardViewModel, isColorblindMode: Boolean){
     Scaffold(
         topBar = { SoundboardTopBar(viewModel) },
         content = { padding -> 
             Box(modifier = Modifier.padding(padding)) {
-                SoundGrid(viewModel)
+                SoundGrid(viewModel, isColorblindMode)
             }
         },
     )
@@ -99,7 +102,7 @@ fun Soundboard(viewModel: SoundboardViewModel){
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SoundGrid(viewModel: SoundboardViewModel) {
+fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
     val context = LocalContext.current
     val currentTemplate = viewModel.templates.getOrNull(viewModel.currentTemplateIndex)
     val totalCells = 20
@@ -132,6 +135,7 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
             if (buttonAtPosition != null) {
                 SoundButtonItem(
                     button = buttonAtPosition,
+                    isColorblindMode = isColorblindMode,
                     onClick = {
                         if (!viewModel.isEditMode) {
                             viewModel.playSound(context, buttonAtPosition.soundEffect)
@@ -147,17 +151,40 @@ fun SoundGrid(viewModel: SoundboardViewModel) {
 
 
 @Composable
-fun SoundButtonItem(button: SoundButton, onClick: () -> Unit) {
+fun SoundButtonItem(
+    button: SoundButton,
+    isColorblindMode: Boolean,
+    onClick: () -> Unit) {
+
+
+    val backgroundColor = Color(button.color)
+    val contentColor = getContrastColor(backgroundColor)
+
+
     ElevatedButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color(button.color))
-    ) {
-        Icon(availableIcons[button.iconRes], contentDescription = null)
-        Text(text = button.name)
+        colors = ButtonDefaults.elevatedButtonColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor
+        ),
+        border = if (isColorblindMode) BorderStroke(2.dp, contentColor) else null
+        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = availableIcons[button.iconRes],
+                contentDescription = null, // Faltaría añadir content description
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = button.name,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -308,8 +335,8 @@ fun AddButtonDialog(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        items(buttonColors.size) { index ->
-                            val color = buttonColors[index]
+                        items(SafeColors.size) { index ->
+                            val color = SafeColors[index]
                             Surface(
                                 modifier = Modifier
                                     .size(35.dp)
