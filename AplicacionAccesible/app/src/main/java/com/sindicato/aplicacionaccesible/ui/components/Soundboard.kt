@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,11 +12,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -227,7 +230,9 @@ fun AddButtonDialog(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Button", "Speech")
 
+    var iconExpanded by remember { mutableStateOf(false) } // State for icon dropdown
     var selectedIconIndex by remember { mutableIntStateOf(0) }
+
     var selectedColor by remember { mutableStateOf(buttonColors[0]) }
 
     val context = LocalContext.current
@@ -316,17 +321,65 @@ fun AddButtonDialog(
                     }
 
                     Text("Select Icon", style = MaterialTheme.typography.labelMedium)
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        availableIcons.forEachIndexed { index, icon ->
-                            InputChip(
-                                selected = selectedIconIndex == index,
-                                onClick = { selectedIconIndex = index },
-                                label = { Icon(icon, contentDescription = null) },
-                                modifier = Modifier.padding(4.dp)
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { iconExpanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = availableIcons[selectedIconIndex],
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
                             )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Choose Icon")
+                            Spacer(Modifier.weight(1f))
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                        }
+
+                        DropdownMenu(
+                            expanded = iconExpanded,
+                            onDismissRequest = { iconExpanded = false },
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f) // Adjust width as needed
+                                .padding(8.dp)
+                        ) {
+                            // Using FlowRow inside the Dropdown to create the Grid effect
+                            // This is scalable: as you add more icons, they wrap automatically
+                            FlowRow(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                maxItemsInEachRow = 4 // Control how many columns
+                            ) {
+                                availableIcons.forEachIndexed { index, icon ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .background(
+                                                color = if (selectedIconIndex == index)
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                else Color.Transparent,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .clickable {
+                                                selectedIconIndex = index
+                                                iconExpanded = false
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = if (selectedIconIndex == index)
+                                                MaterialTheme.colorScheme.onPrimaryContainer
+                                            else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
