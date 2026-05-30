@@ -229,7 +229,7 @@ fun AddButtonDialog(
     var expanded by remember { mutableStateOf(false) }
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Button", "Speech")
+    val tabs = listOf("Botón", "Voz")
 
     var iconExpanded by remember { mutableStateOf(false) } // State for icon dropdown
     var selectedIconIndex by remember { mutableIntStateOf(0) }
@@ -244,7 +244,7 @@ fun AddButtonDialog(
         title = {
 
             Column {
-                Text("Add Element")
+                Text("Añadir Botón")
                 // TabRow for switching between Button and Speech
                 androidx.compose.material3.TabRow(
                     selectedTabIndex = selectedTabIndex,
@@ -267,7 +267,7 @@ fun AddButtonDialog(
                     TextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Button Name") },
+                        label = { Text("Texto") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -306,7 +306,7 @@ fun AddButtonDialog(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.PlayArrow,
-                                                    contentDescription = "Preview sound",
+                                                    contentDescription = "Reproducir sonido",
                                                     tint = MaterialTheme.colorScheme.primary
                                                 )
                                             }
@@ -333,7 +333,7 @@ fun AddButtonDialog(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("Choose Icon")
+                            Text("Elegir Icono")
                             Spacer(Modifier.weight(1f))
                             Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                         }
@@ -384,7 +384,7 @@ fun AddButtonDialog(
                         }
                     }
 
-                    Text("Select Color", style = MaterialTheme.typography.labelMedium)
+                    Text("Elegir Color", style = MaterialTheme.typography.labelMedium)
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -409,7 +409,7 @@ fun AddButtonDialog(
                             .height(100.dp),
                         contentAlignment = androidx.compose.ui.Alignment.Center
                     ) {
-                        Text("Speech configuration coming soon...", color = Color.Gray)
+                        Text("Voz a texto próximamente...", color = Color.Gray)
                     }
                 }
             }
@@ -426,12 +426,12 @@ fun AddButtonDialog(
                 },
                 colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
             ) {
-                Text("Add")
+                Text("Añadir")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancelar")
             }
         }
     )
@@ -449,12 +449,12 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                 showDialog = false
                 newTemplateName = ""
             },
-            title = { Text("New Template") },
+            title = { Text("Nueva Plantilla") },
             text = {
                 TextField(
                     value = newTemplateName,
                     onValueChange = { newTemplateName = it },
-                    label = { Text("Template Name") },
+                    label = { Text("Nombre de la Plantilla") },
                     singleLine = true
                 )
             },
@@ -469,7 +469,7 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
                 ) {
-                    Text("Add")
+                    Text("Añadir")
                 }
             },
             dismissButton = {
@@ -477,7 +477,7 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                     showDialog = false
                     newTemplateName = ""
                 }) {
-                    Text("Cancel")
+                    Text("Cancelar")
                 }
             }
         )
@@ -486,7 +486,7 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
     TopAppBar(
         navigationIcon = {
             IconButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Template")
+                Icon(Icons.Default.Add, contentDescription = "Añadir Plantilla")
             }
         },
         title = {
@@ -514,13 +514,13 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Done")
+                    Text("Aceptar")
                 }
             } else {
                 TextButton(
                     onClick = { viewModel.toggleEditMode() }
                 ) {
-                    Text("Edit")
+                    Text("Editar")
                 }
             }
         }
@@ -544,6 +544,6 @@ fun EmptyCellPlaceholder(onClick: () -> Unit) {
         ),
         border = BorderStroke(1.dp, Color.Gray)
     ) {
-        Icon(Icons.Default.Add, contentDescription = "Add button")
+        Icon(Icons.Default.Add, contentDescription = "Añadir Botón")
     }
 }
