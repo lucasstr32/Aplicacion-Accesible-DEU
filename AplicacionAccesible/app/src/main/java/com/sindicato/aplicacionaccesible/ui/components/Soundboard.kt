@@ -45,6 +45,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -422,7 +423,8 @@ fun AddButtonDialog(
                         onConfirm(name, selectedEffect,
                             colorLong, selectedIconIndex)
                     }
-                }
+                },
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
             ) {
                 Text("Add")
             }
@@ -464,7 +466,8 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                             showDialog = false
                             newTemplateName = ""
                         }
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
                 ) {
                     Text("Add")
                 }
@@ -502,8 +505,23 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
             }
         },
         actions = {
-            TextButton(onClick = { viewModel.toggleEditMode() }) {
-                Text(if (viewModel.isEditMode) "Done" else "Edit")
+            if (viewModel.isEditMode) {
+                Button(
+                    onClick = { viewModel.toggleEditMode() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFC8E6C9), // Light Green
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Done")
+                }
+            } else {
+                TextButton(
+                    onClick = { viewModel.toggleEditMode() }
+                ) {
+                    Text("Edit")
+                }
             }
         }
     )
@@ -521,6 +539,9 @@ fun EmptyCellPlaceholder(onClick: () -> Unit) {
             .fillMaxWidth()
             .height(80.dp),
         shape = RoundedCornerShape(8.dp),
+        colors = IconButtonDefaults.outlinedIconButtonColors(
+            containerColor = Color(0xFFEEEEEE) // Light Gray
+        ),
         border = BorderStroke(1.dp, Color.Gray)
     ) {
         Icon(Icons.Default.Add, contentDescription = "Add button")
