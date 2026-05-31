@@ -18,6 +18,9 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 import kotlin.collections.plus
 
+import android.speech.tts.TextToSpeech
+import java.util.*
+
 class SoundboardViewModel: ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
@@ -27,17 +30,30 @@ class SoundboardViewModel: ViewModel() {
     var columnCount by mutableIntStateOf(2)
 
     private var mediaPlayer: MediaPlayer? = null
+    private var tts: TextToSpeech? = null
+    private var isTtsReady = false
 
     init {
         _templates.add(
             Template(
                 "Default", listOf(
-                    SoundButton("Bomb", 0, SoundEffect.BOMB, 0xFF0000FF, 1),
-                    SoundButton("Kiss", 1, SoundEffect.KISS, 0xFFFF0000, 2)
+                    SoundButton("Bomb", 0, SoundEffect.BOMB, null, 0xFF0000FF, 1),
+                    SoundButton("Kiss", 1, SoundEffect.KISS, null, 0xFFFF0000, 2)
                 )
 
             )
         )
+    }
+
+    private fun initTts(context: Context) {
+        if (tts == null) {
+            tts = TextToSpeech(context.applicationContext) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    tts?.language = Locale.getDefault()
+                    isTtsReady = true
+                }
+            }
+        }
     }
 
     fun addTemplate(name: String) {
@@ -50,20 +66,46 @@ class SoundboardViewModel: ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun addButtonToCurrentTemplate(name: String, soundEffect: SoundEffect, colorLong: Long, iconRes: Int, position: Int) {
-        //val colorLong = color.toArgb().toLong()
+    fun addButtonToCurrentTemplate(
+        name: String,
+        soundEffect: SoundEffect?,
+        ttsText: String?,
+        colorLong: Long,
+        iconRes: Int,
+        position: Int
+    ) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } +
-                SoundButton(name, position, soundEffect, colorLong, iconRes)
+                SoundButton(name, position, soundEffect, ttsText, colorLong, iconRes)
 
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
-        Log.d("SoundboardViewModel", "Added button with: $name, $soundEffect, $colorLong, $iconRes, $position")
     }
 
-    fun playSound(context: Context, soundEffect: SoundEffect) {
+    fun playSound(context: Context, button: SoundButton) {
+        if (button.ttsText != null) {
+            initTts(context)
+            if (isTtsReady) {
+                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
+            }
+        } else if (button.soundEffect != null) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
+            mediaPlayer?.start()
+        }
+    }
+
+    fun previewSound(context: Context, soundEffect: SoundEffect) {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
         mediaPlayer?.start()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaPlayer?.release()
+        tts?.stop()
+        tts?.shutdown()
     }
 }

@@ -52,14 +52,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
-            var columnCount by rememberSaveable { mutableIntStateOf(2) }
             val soundboardViewModel: SoundboardViewModel = viewModel()
 
             AplicacionAccesibleTheme(appTheme = currentTheme) {
                 MainScreen(
                     currentTheme = currentTheme,
                     onThemeChange = { currentTheme = it },
-                    onColumnCountChange = { columnCount = it },
                     soundboardViewModel = soundboardViewModel
                 )
             }
@@ -82,11 +80,9 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
-    onColumnCountChange: (Int) -> Unit,
     soundboardViewModel: SoundboardViewModel
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    val nextCols: Int
     var showHelpDialog by remember { mutableStateOf(false) }
 
     val helpContent = when (selectedTab) {
@@ -230,7 +226,6 @@ fun MainScreenPreview() {
     MainScreen(
         currentTheme = AppTheme.LIGHT,
         onThemeChange = {},
-        onColumnCountChange = {},
         soundboardViewModel = viewModel
     )
 }

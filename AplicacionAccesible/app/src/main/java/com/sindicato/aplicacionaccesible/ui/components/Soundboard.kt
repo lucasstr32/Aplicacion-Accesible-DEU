@@ -118,8 +118,8 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
     showDialogAtPosition?.let { position ->
         AddButtonDialog(
             onDismiss = { showDialogAtPosition = null },
-            onConfirm = { name, effect, selectedColor, selectedIcon ->
-                viewModel.addButtonToCurrentTemplate(name, effect, selectedColor, selectedIcon, position)
+            onConfirm = { name, effect, ttsText, selectedColor, selectedIcon ->
+                viewModel.addButtonToCurrentTemplate(name, effect, ttsText, selectedColor, selectedIcon, position)
                 showDialogAtPosition = null
             },
             soundboardViewModel = viewModel
@@ -142,7 +142,7 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
                     isColorblindMode = isColorblindMode,
                     onClick = {
                         if (!viewModel.isEditMode) {
-                            viewModel.playSound(context, buttonAtPosition.soundEffect)
+                            viewModel.playSound(context, buttonAtPosition)
                         }
                     }
                 )
@@ -199,7 +199,7 @@ fun SoundButtonItem(
 fun AddButtonDialogPreview() {
     AddButtonDialog(
         onDismiss = { /* Do nothing */ },
-        onConfirm = { name, effect, color, iconRes -> println("Preview: $name with $effect")},
+        onConfirm = { name, effect, tts, color, iconRes -> println("Preview: $name with $effect or $tts")},
         soundboardViewModel = viewModel()
     )
 }
@@ -221,11 +221,12 @@ val availableIcons = listOf(
 @Composable
 fun AddButtonDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, SoundEffect, Long, Int) -> Unit,
+    onConfirm: (String, SoundEffect?, String?, Long, Int) -> Unit,
     soundboardViewModel: SoundboardViewModel
 ) {
     var name by remember { mutableStateOf("") }
-    var selectedEffect by remember { mutableStateOf(SoundEffect.BOMB) }
+    var selectedEffect by remember { mutableStateOf<SoundEffect?>(SoundEffect.BOMB) }
+    var ttsText by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -263,21 +264,21 @@ fun AddButtonDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
-                if(selectedTabIndex == 0) {
-                    TextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text("Texto") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre del Botón") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
+                if(selectedTabIndex == 0) {
                     Box {
                         OutlinedButton(
                             onClick = { expanded = true },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(selectedEffect.displayName)
+                            Text(selectedEffect?.displayName ?: "Seleccionar Sonido")
                             Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -300,7 +301,7 @@ fun AddButtonDialog(
                                             IconButton(
                                                 onClick = {
                                                     // This plays the sound without closing the menu
-                                                    soundboardViewModel.playSound(context, effect)
+                                                    soundboardViewModel.previewSound(context, effect)
                                                 },
                                                 modifier = Modifier.size(32.dp)
                                             ) {
@@ -320,96 +321,94 @@ fun AddButtonDialog(
                             }
                         }
                     }
+                } else {
+                    TextField(
+                        value = ttsText,
+                        onValueChange = { ttsText = it },
+                        label = { Text("Texto a decir") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-                    Text("Select Icon", style = MaterialTheme.typography.labelMedium)
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { iconExpanded = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = availableIcons[selectedIconIndex],
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Elegir Icono")
-                            Spacer(Modifier.weight(1f))
-                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                        }
+                Text("Seleccionar Icono", style = MaterialTheme.typography.labelMedium)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { iconExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = availableIcons[selectedIconIndex],
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Elegir Icono")
+                        Spacer(Modifier.weight(1f))
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    }
 
-                        DropdownMenu(
-                            expanded = iconExpanded,
-                            onDismissRequest = { iconExpanded = false },
+                    DropdownMenu(
+                        expanded = iconExpanded,
+                        onDismissRequest = { iconExpanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f) // Adjust width as needed
+                            .padding(8.dp)
+                    ) {
+                        // Using FlowRow inside the Dropdown to create the Grid effect
+                        // This is scalable: as you add more icons, they wrap automatically
+                        FlowRow(
                             modifier = Modifier
-                                .fillMaxWidth(0.8f) // Adjust width as needed
                                 .padding(8.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            maxItemsInEachRow = 4 // Control how many columns
                         ) {
-                            // Using FlowRow inside the Dropdown to create the Grid effect
-                            // This is scalable: as you add more icons, they wrap automatically
-                            FlowRow(
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                maxItemsInEachRow = 4 // Control how many columns
-                            ) {
-                                availableIcons.forEachIndexed { index, icon ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .background(
-                                                color = if (selectedIconIndex == index)
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                else Color.Transparent,
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                            .clickable {
-                                                selectedIconIndex = index
-                                                iconExpanded = false
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = icon,
-                                            contentDescription = null,
-                                            tint = if (selectedIconIndex == index)
-                                                MaterialTheme.colorScheme.onPrimaryContainer
-                                            else MaterialTheme.colorScheme.onSurface
+                            availableIcons.forEachIndexed { index, icon ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .background(
+                                            color = if (selectedIconIndex == index)
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            else Color.Transparent,
+                                            shape = RoundedCornerShape(8.dp)
                                         )
-                                    }
+                                        .clickable {
+                                            selectedIconIndex = index
+                                            iconExpanded = false
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = if (selectedIconIndex == index)
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
-                    Text("Elegir Color", style = MaterialTheme.typography.labelMedium)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(SafeColors.size) { index ->
-                            val color = SafeColors[index]
-                            Surface(
-                                modifier = Modifier
-                                    .size(35.dp)
-                                    .clickable { selectedColor = color },
-                                shape = CircleShape,
-                                color = color,
-                                border = if (selectedColor == color)
-                                    BorderStroke(3.dp, Color.Black) else null
-                            ) {}
-                        }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        contentAlignment = androidx.compose.ui.Alignment.Center
-                    ) {
-                        Text("Voz a texto próximamente...", color = Color.Gray)
+                Text("Elegir Color", style = MaterialTheme.typography.labelMedium)
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(SafeColors.size) { index ->
+                        val color = SafeColors[index]
+                        Surface(
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clickable { selectedColor = color },
+                            shape = CircleShape,
+                            color = color,
+                            border = if (selectedColor == color)
+                                BorderStroke(3.dp, Color.Black) else null
+                        ) {}
                     }
                 }
             }
@@ -420,8 +419,13 @@ fun AddButtonDialog(
                     if (name.isNotBlank()) {
                         val colorLong = selectedColor.toArgb().toLong()
 
-                        onConfirm(name, selectedEffect,
-                            colorLong, selectedIconIndex)
+                        if (selectedTabIndex == 0) {
+                            onConfirm(name, selectedEffect, null, colorLong, selectedIconIndex)
+                        } else {
+                            if (ttsText.isNotBlank()) {
+                                onConfirm(name, null, ttsText, colorLong, selectedIconIndex)
+                            }
+                        }
                     }
                 },
                 colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
