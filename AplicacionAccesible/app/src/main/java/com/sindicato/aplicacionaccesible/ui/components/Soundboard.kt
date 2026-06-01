@@ -144,6 +144,8 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
                     onClick = {
                         if (!viewModel.isEditMode) {
                             viewModel.playSound(context, buttonAtPosition)
+                        } else {
+                            viewModel.deleteButtonAtPosition(index)
                         }
                     },
                     viewModel
