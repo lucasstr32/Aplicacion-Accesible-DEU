@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -143,8 +144,11 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
                     onClick = {
                         if (!viewModel.isEditMode) {
                             viewModel.playSound(context, buttonAtPosition.soundEffect)
+                        } else {
+                            viewModel.deleteButtonAtPosition(buttonAtPosition.gridPosition)
                         }
-                    }
+                    },
+                    viewModel
                 )
             } else if (viewModel.isEditMode) {
                 EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
@@ -158,12 +162,14 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
 fun SoundButtonItem(
     button: SoundButton,
     isColorblindMode: Boolean,
-    onClick: () -> Unit) {
-
-
+    onClick: () -> Unit,
+    viewModel: SoundboardViewModel
+) {
     val backgroundColor = Color(button.color)
     val contentColor = getContrastColor(backgroundColor)
 
+    // Aplicar transparencia en modo edición
+    val alpha = if (viewModel.isEditMode) 0.5f else 1f
 
     ElevatedButton(
         onClick = onClick,
@@ -172,22 +178,42 @@ fun SoundButtonItem(
             .height(80.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = backgroundColor,
-            contentColor = contentColor
+            containerColor = backgroundColor.copy(alpha = alpha),
+            contentColor = contentColor.copy(alpha = alpha)
         ),
-        border = if (isColorblindMode) BorderStroke(2.dp, contentColor) else null
-        ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = availableIcons[button.iconRes],
-                contentDescription = null, // Faltaría añadir content description
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = button.name,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1
-            )
+        border = if (isColorblindMode) BorderStroke(2.dp, contentColor.copy(alpha = alpha)) else null
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (viewModel.isEditMode) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                    // Icono de eliminación en modo edición
+                    Icon(
+                        imageVector = Icons.Default.RemoveCircle,
+                        contentDescription = "Eliminar",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        text = button.name,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
+                }
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = availableIcons.getOrNull(button.iconRes) ?: Icons.Default.MusicNote,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = button.name,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
+                }
+            }
         }
     }
 }
