@@ -9,14 +9,16 @@ import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import com.sindicato.aplicacionaccesible.data.AppDatabase
+import com.sindicato.aplicacionaccesible.data.PhraseEntity
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.util.*
 
 class ComunicacionViewModel(application: Application) : AndroidViewModel(application), RecognitionListener {
 
+    private val phraseDao = AppDatabase.getDatabase(application).phraseDao()
     private val _uiState = MutableStateFlow(ComunicacionUiState())
     val uiState: StateFlow<ComunicacionUiState> = _uiState.asStateFlow()
 
@@ -26,6 +28,30 @@ class ComunicacionViewModel(application: Application) : AndroidViewModel(applica
     init {
         setupTts()
         setupSpeechRecognizer()
+        observePhrases()
+    }
+
+    private fun observePhrases() {
+        viewModelScope.launch {
+            phraseDao.getAllPhrases().collect { phrases ->
+                _uiState.update { it.copy(savedPhrases = phrases) }
+            }
+        }
+    }
+
+    fun saveCurrentTtsAsPhrase() {
+        val text = _uiState.value.ttsText
+        if (text.isNotBlank()) {
+            viewModelScope.launch {
+                phraseDao.insertPhrase(PhraseEntity(text = text))
+            }
+        }
+    }
+
+    fun deletePhrase(phrase: PhraseEntity) {
+        viewModelScope.launch {
+            phraseDao.deletePhrase(phrase)
+        }
     }
 
     private fun setupTts() {
@@ -73,6 +99,10 @@ class ComunicacionViewModel(application: Application) : AndroidViewModel(applica
 
     fun onTtsTextChanged(text: String) {
         _uiState.update { it.copy(ttsText = text) }
+    }
+
+    fun onSttTextChanged(text: String) {
+        _uiState.update { it.copy(sttText = text) }
     }
 
     fun speak() {

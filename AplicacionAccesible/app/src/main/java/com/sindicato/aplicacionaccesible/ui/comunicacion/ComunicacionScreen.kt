@@ -11,26 +11,30 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sindicato.aplicacionaccesible.data.PhraseEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComunicacionScreen(
     viewModel: ComunicacionViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -67,7 +71,10 @@ fun ComunicacionScreen(
                         text = uiState.ttsText,
                         onTextChanged = { viewModel.onTtsTextChanged(it) },
                         status = uiState.ttsStatus,
-                        onSpeak = { viewModel.speak() }
+                        onSpeak = { viewModel.speak() },
+                        onSavePhrase = { viewModel.saveCurrentTtsAsPhrase() },
+                        savedPhrases = uiState.savedPhrases,
+                        onDeletePhrase = { viewModel.deletePhrase(it) }
                     )
                 }
                 ComunicacionMode.SPEECH_TO_TEXT -> {
@@ -88,6 +95,11 @@ fun ComunicacionScreen(
                             } else {
                                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                             }
+                        },
+                        onClearText = { viewModel.onSttTextChanged("") },
+                        onUseText = { 
+                            viewModel.onTtsTextChanged(it)
+                            viewModel.changeMode(ComunicacionMode.TEXT_TO_SPEECH)
                         }
                     )
                 }
@@ -137,10 +149,17 @@ fun TtsSection(
     text: String,
     onTextChanged: (String) -> Unit,
     status: TtsStatus,
-    onSpeak: () -> Unit
+    onSpeak: () -> Unit,
+    onSavePhrase: () -> Unit,
+    savedPhrases: List<PhraseEntity>,
+    onDeletePhrase: (PhraseEntity) -> Unit
 ) {
+    var localError by remember { mutableStateOf<String?>(null) }
+
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
@@ -148,39 +167,153 @@ fun TtsSection(
             onValueChange = onTextChanged,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .height(150.dp),
             placeholder = { Text("Escribe el texto que quieres que la app diga...") },
             label = { Text("Mensaje") },
             shape = RoundedCornerShape(12.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = onSpeak,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            enabled = text.isNotBlank() && status != TtsStatus.CARGANDO,
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            if (status == TtsStatus.REPRODUCIENDO) {
-                Icon(Icons.Default.Refresh, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Reproduciendo...")
-            } else {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Escuchar texto")
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = onSpeak,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                enabled = text.isNotBlank() && status != TtsStatus.CARGANDO,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                if (status == TtsStatus.REPRODUCIENDO) {
+                    Icon(Icons.Default.Refresh, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Hablando...")
+                } else {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Escuchar")
+                }
+            }
+            
+            OutlinedButton(
+                onClick = { 
+                    if (text.isNotBlank()) {
+                        onSavePhrase()
+                        localError = null
+                    } else {
+                        localError = "Escribe un mensaje antes de guardar"
+                    }
+                },
+                modifier = Modifier.height(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Save, contentDescription = null)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Guardar")
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        if (localError != null) {
+            Text(
+                text = localError!!,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Frases rápidas",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Start,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (savedPhrases.isEmpty()) {
+            Text(
+                "No tienes frases guardadas aún.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        } else {
+            // Usamos FlowRow o una grilla manual ya que LazyVerticalGrid dentro de Column con scroll es problemático
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                savedPhrases.chunked(2).forEach { rowPhrases ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowPhrases.forEach { phrase ->
+                            QuickPhraseCard(
+                                phrase = phrase,
+                                onClick = { onTextChanged(phrase.text) },
+                                onDelete = { onDeletePhrase(phrase) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (rowPhrases.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         InfoBox(
             title = "Consejo",
-            description = "Puedes escribir frases largas y la aplicación las leerá con una voz clara."
+            description = "Escribe y presiona el icono '+' para guardar frases que uses frecuentemente."
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuickPhraseCard(
+    phrase: PhraseEntity,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(60.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = phrase.text,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Eliminar",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
+            }
+        }
     }
 }
 
@@ -188,7 +321,9 @@ fun TtsSection(
 fun SttSection(
     text: String,
     status: SttStatus,
-    onMicClick: () -> Unit
+    onMicClick: () -> Unit,
+    onClearText: () -> Unit,
+    onUseText: (String) -> Unit
 ) {
     var showFullTextDialog by remember { mutableStateOf(false) }
 
@@ -251,21 +386,50 @@ fun SttSection(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        FloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = onMicClick,
             containerColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primary,
             contentColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(80.dp),
-            shape = RoundedCornerShape(40.dp)
-        ) {
-            Icon(
-                imageVector = if (status == SttStatus.ESCUCHANDO) Icons.Default.Stop else Icons.Default.Mic,
-                contentDescription = "Micrófono",
-                modifier = Modifier.size(36.dp)
-            )
-        }
+            expanded = status == SttStatus.ESCUCHANDO,
+            icon = {
+                Icon(
+                    imageVector = if (status == SttStatus.ESCUCHANDO) Icons.Default.Stop else Icons.Default.Mic,
+                    contentDescription = null
+                )
+            },
+            text = {
+                Text(if (status == SttStatus.ESCUCHANDO) "Detener" else "Empezar a hablar")
+            }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        if (text.isNotEmpty() && status == SttStatus.IDLE) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onClearText,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Limpiar")
+                }
+                Button(
+                    onClick = { onUseText(text) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Usar texto")
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         Text(
             text = when (status) {

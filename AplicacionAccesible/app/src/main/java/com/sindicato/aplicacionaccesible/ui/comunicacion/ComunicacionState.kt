@@ -1,5 +1,7 @@
 package com.sindicato.aplicacionaccesible.ui.comunicacion
 
+import com.sindicato.aplicacionaccesible.data.PhraseEntity
+
 enum class ComunicacionMode {
     TEXT_TO_SPEECH, SPEECH_TO_TEXT
 }
@@ -18,5 +20,6 @@ data class ComunicacionUiState(
     val ttsStatus: TtsStatus = TtsStatus.IDLE,
     val sttText: String = "",
     val sttStatus: SttStatus = SttStatus.IDLE,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val savedPhrases: List<PhraseEntity> = emptyList()
 )
