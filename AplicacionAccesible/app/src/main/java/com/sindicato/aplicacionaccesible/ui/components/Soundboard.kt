@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MusicNote
@@ -145,7 +146,7 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
                         if (!viewModel.isEditMode) {
                             viewModel.playSound(context, buttonAtPosition)
                         } else {
-                            viewModel.deleteButtonAtPosition(index)
+                            viewModel.deleteButtonAtPosition(buttonAtPosition.gridPosition)
                         }
                     },
                     viewModel
@@ -472,6 +473,7 @@ fun AddButtonDialog(
 fun SoundboardTopBar(viewModel: SoundboardViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var newTemplateName by remember { mutableStateOf("") }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     if (showDialog) {
         AlertDialog(
@@ -513,6 +515,31 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
         )
     }
 
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Borrar Plantilla") },
+            text = { Text("¿Estás seguro de que quieres borrar esta plantilla?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteCurrentTemplate()
+                        viewModel.toggleEditMode()
+                        showDeleteConfirm = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                ) {
+                    Text("Borrar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     TopAppBar(
         navigationIcon = {
             IconButton(onClick = { showDialog = true }) {
@@ -525,17 +552,33 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                itemsIndexed(viewModel.templates) { index, template ->
-                    FilterChip(
-                        selected = viewModel.currentTemplateIndex == index,
-                        onClick = { viewModel.currentTemplateIndex = index },
-                        label = { Text(template.name) }
-                    )
+                if (viewModel.isEditMode) {
+                    val template = viewModel.templates.getOrNull(viewModel.currentTemplateIndex)
+                    if (template != null) {
+                        item {
+                            FilterChip(
+                                selected = true,
+                                onClick = { },
+                                label = { Text(template.name) }
+                            )
+                        }
+                    }
+                } else {
+                    itemsIndexed(viewModel.templates) { index, template ->
+                        FilterChip(
+                            selected = viewModel.currentTemplateIndex == index,
+                            onClick = { viewModel.currentTemplateIndex = index },
+                            label = { Text(template.name) }
+                        )
+                    }
                 }
             }
         },
         actions = {
             if (viewModel.isEditMode) {
+                IconButton(onClick = { showDeleteConfirm = true }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Borrar Plantilla", tint = Color.Red)
+                }
                 Button(
                     onClick = { viewModel.toggleEditMode() },
                     colors = ButtonDefaults.buttonColors(
@@ -547,10 +590,12 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                     Text("Aceptar")
                 }
             } else {
-                TextButton(
-                    onClick = { viewModel.toggleEditMode() }
-                ) {
-                    Text("Editar")
+                if(viewModel.templates.isNotEmpty()) {
+                    TextButton(
+                        onClick = { viewModel.toggleEditMode() }
+                    ) {
+                        Text("Editar")
+                    }
                 }
             }
         }

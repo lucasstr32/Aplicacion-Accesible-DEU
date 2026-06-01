@@ -1,7 +1,6 @@
 package com.sindicato.aplicacionaccesible.viewmodel
 
 import android.content.Context
-import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Build
 import android.util.Log
@@ -57,6 +56,18 @@ class SoundboardViewModel: ViewModel() {
     fun addTemplate(name: String) {
         _templates.add(Template(name = name))
         currentTemplateIndex = _templates.size - 1
+    }
+
+    fun deleteCurrentTemplate() {
+        if (_templates.isNotEmpty()) {
+            _templates.removeAt(currentTemplateIndex)
+            if (currentTemplateIndex >= _templates.size) {
+                currentTemplateIndex = _templates.size - 1
+            }
+            if (currentTemplateIndex < 0 && _templates.isNotEmpty()) {
+                currentTemplateIndex = 0
+            }
+        }
     }
 
     fun toggleEditMode() {
