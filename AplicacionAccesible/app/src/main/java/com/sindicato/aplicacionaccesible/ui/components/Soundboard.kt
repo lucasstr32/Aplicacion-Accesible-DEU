@@ -252,7 +252,7 @@ fun AddButtonDialog(
     soundboardViewModel: SoundboardViewModel
 ) {
     var name by remember { mutableStateOf("") }
-    var selectedEffect by remember { mutableStateOf<SoundEffect?>(SoundEffect.BOMB) }
+    var selectedEffect by remember { mutableStateOf<SoundEffect?>(SoundEffect.CLAPPING) }
     var ttsText by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 

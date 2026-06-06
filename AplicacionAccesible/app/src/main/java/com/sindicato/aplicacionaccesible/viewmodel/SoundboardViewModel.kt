@@ -33,10 +33,7 @@ class SoundboardViewModel: ViewModel() {
     init {
         _templates.add(
             Template(
-                "Default", listOf(
-                    SoundButton("Bomb", 0, SoundEffect.BOMB, null, 0xFF0000FF, 1),
-                    SoundButton("Kiss", 1, SoundEffect.KISS, null, 0xFFFF0000, 2)
-                )
+                "Default", listOf()
 
             )
         )
