@@ -3,7 +3,6 @@ package com.sindicato.aplicacionaccesible.viewmodel
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
