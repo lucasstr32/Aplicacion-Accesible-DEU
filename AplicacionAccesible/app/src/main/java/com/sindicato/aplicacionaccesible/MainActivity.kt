@@ -1,12 +1,12 @@
 package com.sindicato.aplicacionaccesible
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -26,23 +26,27 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.data.AppDatabase
 import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
+import com.sindicato.aplicacionaccesible.ui.components.SettingsDialog
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.signlanguage.SignLanguageGrid
 import com.sindicato.aplicacionaccesible.ui.sound.SoundEffectManager
+import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
+    @SuppressLint("ViewModelConstructorInComposable")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        SoundEffectManager.init(applicationContext)
+        SoundEffectManager.init(this)
+        TTSManager.init(this)
 
         // Seed the database
         val dao = AppDatabase.getDatabase(applicationContext).signLanguageDao()
@@ -51,13 +55,10 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            var currentTheme by rememberSaveable { mutableStateOf(AppTheme.LIGHT) }
-            val soundboardViewModel: SoundboardViewModel = viewModel()
+            val soundboardViewModel = SoundboardViewModel()
 
-            AplicacionAccesibleTheme(appTheme = currentTheme) {
+            AplicacionAccesibleTheme(appTheme = soundboardViewModel.appTheme) {
                 MainScreen(
-                    currentTheme = currentTheme,
-                    onThemeChange = { currentTheme = it },
                     soundboardViewModel = soundboardViewModel
                 )
             }
@@ -67,23 +68,18 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         SoundEffectManager.release()
-
     }
 }
-
-
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    currentTheme: AppTheme,
-    onThemeChange: (AppTheme) -> Unit,
     soundboardViewModel: SoundboardViewModel
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var showHelpDialog by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
 
     val helpContent = when (selectedTab) {
         0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas desde el menú superior (icono de tres líneas)."
@@ -110,6 +106,13 @@ fun MainScreen(
         )
     }
 
+    if (showSettings) {
+        SettingsDialog(
+            viewModel = soundboardViewModel,
+            onDismiss = { showSettings = false }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -123,23 +126,16 @@ fun MainScreen(
                     ) 
                 },
                 actions = {
-                    IconButton(onClick = {
-                        val nextTheme = when (currentTheme) {
-                            AppTheme.LIGHT -> AppTheme.DARK
-                            AppTheme.DARK -> AppTheme.COLORBLIND
-                            AppTheme.COLORBLIND -> AppTheme.LIGHT
-                        }
-                        onThemeChange(nextTheme)
-                    }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Cambiar Tema")
+                    IconButton(onClick = { showSettings = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
 
                     // Botón para cambiar el número de columnas en la grilla
                     if (selectedTab == 0) {
                         IconButton(onClick = {
                             val columnCount = soundboardViewModel.columnCount
-                            val nextCols = if (columnCount >= 4) 2 else columnCount + 1 // anillo (2-3-4) que arranca de 2
-                            soundboardViewModel.columnCount = nextCols // Se actualiza la cantidad de columnas y triggerea recomposición de la UI
+                            val nextCols = if (columnCount >= 4) 2 else columnCount + 1
+                            soundboardViewModel.columnCount = nextCols
                         }) {
                             Icon(Icons.Default.Menu, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
                         }
@@ -185,7 +181,10 @@ fun MainScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
-                0 -> Soundboard(soundboardViewModel, currentTheme == AppTheme.COLORBLIND)
+                0 -> Soundboard(
+                    soundboardViewModel,
+                    soundboardViewModel.appTheme == AppTheme.COLORBLIND,
+                )
                 1 -> ComunicacionScreen()
                 2 -> SignLanguageGrid()
             }
@@ -193,23 +192,10 @@ fun MainScreen(
     }
 }
 
-
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(
     name = "Small phone",
     device = Devices.PIXEL_4A,
-    showBackground = true
-)
-@Preview(
-    name = "Standard phone",
-    device = Devices.PIXEL_6,
-    showBackground = true
-)
-@Preview(
-    name = "Large phone",
-    device = Devices.PIXEL_8,
     showBackground = true
 )
 @Preview(
@@ -219,13 +205,10 @@ fun MainScreen(
     widthDp = 800,
     heightDp = 1280
 )
-@Preview()
 @Composable
 fun MainScreenPreview() {
     val viewModel: SoundboardViewModel = viewModel()
     MainScreen(
-        currentTheme = AppTheme.LIGHT,
-        onThemeChange = {},
         soundboardViewModel = viewModel
     )
 }

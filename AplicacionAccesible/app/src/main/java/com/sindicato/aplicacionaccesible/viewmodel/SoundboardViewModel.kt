@@ -3,9 +3,9 @@ package com.sindicato.aplicacionaccesible.viewmodel
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,11 +14,16 @@ import androidx.lifecycle.ViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
+import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 
 import android.speech.tts.TextToSpeech
+import android.util.Log
+import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import java.util.*
 
-class SoundboardViewModel: ViewModel() {
+class SoundboardViewModel(
+
+): ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
     val templates: List<Template> = _templates
@@ -26,8 +31,14 @@ class SoundboardViewModel: ViewModel() {
     var isEditMode by mutableStateOf(false)
     var columnCount by mutableIntStateOf(2)
 
+    // Configuración de la aplicación (Global)
+    var appTheme by mutableStateOf(AppTheme.LIGHT)
+    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
+    var ttsPitch by mutableFloatStateOf(1.0f)
+    var ttsSpeed by mutableFloatStateOf(1.0f)
+
     private var mediaPlayer: MediaPlayer? = null
-    private var tts: TextToSpeech? = null
+    //private var tts: TextToSpeech? = null
     private var isTtsReady = false
 
     init {
@@ -37,20 +48,29 @@ class SoundboardViewModel: ViewModel() {
                     SoundButton("Bomb", 0, SoundEffect.BOMB, null, 0xFF0000FF, 1),
                     SoundButton("Kiss", 1, SoundEffect.KISS, null, 0xFFFF0000, 2)
                 )
-
             )
         )
     }
 
-    private fun initTts(context: Context) {
-        if (tts == null) {
-            tts = TextToSpeech(context.applicationContext) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    tts?.language = Locale.getDefault()
-                    isTtsReady = true
-                }
-            }
-        }
+//    private fun initTts(context: Context) {
+//        if (tts == null) {
+//            tts = TextToSpeech(context.applicationContext) { status ->
+//                if (status == TextToSpeech.SUCCESS) {
+//                    updateTtsSettings()
+//                    isTtsReady = true
+//                }
+//            }
+//        } else if (isTtsReady) {
+//            updateTtsSettings()
+//        }
+//    }
+
+    private fun updateTtsSettings() {
+        val tts = TTSManager
+        val locale = if (appLanguage == "Español") Locale("es", "ES") else Locale.ENGLISH
+        tts.language = locale
+        tts.setPitch(ttsPitch)
+        tts.setSpeechRate(ttsSpeed)
     }
 
     fun addTemplate(name: String) {
@@ -91,11 +111,16 @@ class SoundboardViewModel: ViewModel() {
     }
 
     fun playSound(context: Context, button: SoundButton) {
+        val tts = TTSManager
         if (button.ttsText != null) {
-            initTts(context)
-            if (isTtsReady) {
-                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
-            }
+            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
+
+//            initTts(context)
+//            if (isTtsReady) {
+//                updateTtsSettings()
+//                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
+//            }
+            tts.speak(button.ttsText)
         } else if (button.soundEffect != null) {
             mediaPlayer?.stop()
             mediaPlayer?.release()
@@ -117,10 +142,17 @@ class SoundboardViewModel: ViewModel() {
         mediaPlayer?.start()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        mediaPlayer?.release()
-        tts?.stop()
-        tts?.shutdown()
+    fun updateLanguage(language: String) {
+        appLanguage = language
+        if (isTtsReady) {
+            updateTtsSettings()
+        }
     }
+
+//    override fun onCleared() {
+//        super.onCleared()
+//        mediaPlayer?.release()
+//        tts?.stop()
+//        tts?.shutdown()
+//    }
 }
