@@ -20,8 +20,8 @@ object TTSManager {
     private var isInitialized = false
     private var tts: TextToSpeech? = null
     var language = Locale("es", "ES")
-    private var speechRate = 1.0F
-    private var pitch = 1.0F
+    private var speechRate = 1.0f
+    private var pitch = 1.0f
 
 
     val ttsText: String = ""
@@ -39,8 +39,8 @@ object TTSManager {
         setupTts(context)
 
         isInitialized = true
-        tts?.setPitch(1.0F)
-        tts?.setSpeechRate(1.0F)
+        tts?.setPitch(1.0f)
+        tts?.setSpeechRate(1.0f)
         Log.d("TTSManager", "TTS Inicializado. Estado: ${tts?.voice}")
 
     }
@@ -83,16 +83,10 @@ object TTSManager {
         tts?.setPitch(pitch)
     }
 
-    fun getPitch(): Float{
-        return pitch
-    }
 
-    fun getSpeechRate(): Float{
-        return speechRate
-    }
+
 
     fun setSpeechRate(rate: Float){
-        speechRate = rate
         tts?.setSpeechRate(rate)
     }
 

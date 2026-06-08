@@ -19,6 +19,9 @@ import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.*
 
 class SoundboardViewModel(
@@ -39,6 +42,11 @@ class SoundboardViewModel(
     private var mediaPlayer: MediaPlayer? = null
     //private var tts: TextToSpeech? = null
     private var isTtsReady = false
+
+    private val _ttsPitch = MutableStateFlow(1.0f)
+    val ttsPitch: StateFlow<Float> = _ttsPitch.asStateFlow()
+    private val _ttsSpeechRate = MutableStateFlow(1.0f)
+    val ttsSpeechRate: StateFlow<Float> = _ttsSpeechRate.asStateFlow()
 
 
     init {
@@ -146,19 +154,16 @@ class SoundboardViewModel(
 
     fun setSpeechRate(speed: Float){
         TTSManager.setSpeechRate(speed)
+        _ttsSpeechRate.value = speed
     }
 
-    fun getSpeechRate(): Float{
-        return TTSManager.getSpeechRate()
-    }
 
     fun setPitch(pitch: Float){
         TTSManager.setPitch(pitch)
+        _ttsPitch.value = pitch
     }
 
-    fun getTtsPitch(): Float{
-        return TTSManager.getPitch()
-    }
+
 
 //    override fun onCleared() {
 //        super.onCleared()

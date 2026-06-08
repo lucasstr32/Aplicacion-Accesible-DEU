@@ -24,6 +24,9 @@ fun SettingsDialog(
     viewModel: SoundboardViewModel,
     onDismiss: () -> Unit
 ) {
+    val currentPitch by viewModel.ttsPitch.collectAsState()
+    val currentSpeechRate by viewModel.ttsSpeechRate.collectAsState()
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -146,7 +149,7 @@ fun SettingsDialog(
                         ) {
                             val pitchOptions = listOf(0.5f, 0.75f, 1.0f, 1.5f, 2.0f)
                             pitchOptions.forEach { pitch ->
-                                val isSelected = viewModel.getTtsPitch() == pitch
+                                val isSelected = currentPitch == pitch
                                 FilterChip(
                                     selected = isSelected,
                                     onClick = { viewModel.setPitch(pitch) },
@@ -164,9 +167,9 @@ fun SettingsDialog(
                         Spacer(Modifier.height(24.dp))
                         
                         // VELOCIDAD (Speech Rate)
-                        Text("Velocidad: ${String.format("%.1f", viewModel.getSpeechRate())}")
+                        Text("Velocidad: ${String.format("%.1f", currentSpeechRate)}")
                         Slider(
-                            value = viewModel.getSpeechRate(),
+                            value = currentSpeechRate,
                             onValueChange = { viewModel.setSpeechRate(it) },
                             valueRange = 0.5f..2.0f
                         )
