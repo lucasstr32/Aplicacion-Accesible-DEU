@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,8 +15,14 @@ import androidx.lifecycle.ViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
+import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 
 import android.speech.tts.TextToSpeech
+import android.util.Log
+import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.*
 
 class SoundboardViewModel: ViewModel() {
@@ -26,9 +33,18 @@ class SoundboardViewModel: ViewModel() {
     var isEditMode by mutableStateOf(false)
     var columnCount by mutableIntStateOf(2)
 
-    private var mediaPlayer: MediaPlayer? = null
-    private var tts: TextToSpeech? = null
-    private var isTtsReady = false
+    // Configuración de la aplicación (Global)
+    var appTheme by mutableStateOf(AppTheme.LIGHT)
+//    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
+//    var ttsPitch by mutableFloatStateOf(1.0f)
+//    var ttsSpeed by mutableFloatStateOf(1.0f)
+
+//    private var mediaPlayer: MediaPlayer? = null
+//    //private var tts: TextToSpeech? = null
+//    private var isTtsReady = false
+
+
+
 
     init {
         _templates.add(
@@ -39,16 +55,20 @@ class SoundboardViewModel: ViewModel() {
         )
     }
 
-    private fun initTts(context: Context) {
-        if (tts == null) {
-            tts = TextToSpeech(context.applicationContext) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    tts?.language = Locale.getDefault()
-                    isTtsReady = true
-                }
-            }
-        }
-    }
+//    private fun initTts(context: Context) {
+//        if (tts == null) {
+//            tts = TextToSpeech(context.applicationContext) { status ->
+//                if (status == TextToSpeech.SUCCESS) {
+//                    updateTtsSettings()
+//                    isTtsReady = true
+//                }
+//            }
+//        } else if (isTtsReady) {
+//            updateTtsSettings()
+//        }
+//    }
+
+
 
     fun addTemplate(name: String) {
         _templates.add(Template(name = name))
@@ -87,19 +107,23 @@ class SoundboardViewModel: ViewModel() {
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
     }
 
-    fun playSound(context: Context, button: SoundButton) {
-        if (button.ttsText != null) {
-            initTts(context)
-            if (isTtsReady) {
-                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
-            }
-        } else if (button.soundEffect != null) {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
-            mediaPlayer?.start()
-        }
-    }
+//    fun playSound(context: Context, button: SoundButton) {
+//        if (button.ttsText != null) {
+//            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
+//
+////            initTts(context)
+////            if (isTtsReady) {
+////                updateTtsSettings()
+////                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
+////            }
+//            TTSManager.speak(button.ttsText)
+//        } else if (button.soundEffect != null) {
+//            mediaPlayer?.stop()
+//            mediaPlayer?.release()
+//            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
+//            mediaPlayer?.start()
+//        }
+//    }
 
     fun deleteButtonAtPosition(position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
@@ -107,17 +131,22 @@ class SoundboardViewModel: ViewModel() {
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
     }
 
-    fun previewSound(context: Context, soundEffect: SoundEffect) {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
-        mediaPlayer?.start()
-    }
+//    fun previewSound(context: Context, soundEffect: SoundEffect) {
+//        mediaPlayer?.stop()
+//        mediaPlayer?.release()
+//        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
+//        mediaPlayer?.start()
+//    }
 
-    override fun onCleared() {
-        super.onCleared()
-        mediaPlayer?.release()
-        tts?.stop()
-        tts?.shutdown()
-    }
+
+
+
+
+
+//    override fun onCleared() {
+//        super.onCleared()
+//        mediaPlayer?.release()
+//        tts?.stop()
+//        tts?.shutdown()
+//    }
 }
