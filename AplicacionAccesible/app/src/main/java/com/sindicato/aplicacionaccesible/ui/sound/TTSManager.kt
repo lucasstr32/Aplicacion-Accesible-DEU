@@ -83,7 +83,9 @@ object TTSManager {
         tts?.setPitch(pitch)
     }
 
-
+    fun setSpeechLanguage(language: Locale){
+        tts?.language = language
+    }
 
 
     fun setSpeechRate(rate: Float){

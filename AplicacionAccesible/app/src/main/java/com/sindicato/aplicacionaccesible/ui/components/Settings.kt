@@ -12,20 +12,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
+import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 
 @Composable
 fun SettingsDialog(
-    viewModel: SoundboardViewModel,
+    soundboardViewModel: SoundboardViewModel,
+    soundManagerViewModel: SoundManagerViewModel,
     onDismiss: () -> Unit
 ) {
-    val currentPitch by viewModel.ttsPitch.collectAsState()
-    val currentSpeechRate by viewModel.ttsSpeechRate.collectAsState()
+    val currentPitch by soundManagerViewModel.ttsPitch.collectAsState()
+    val currentSpeechRate by soundManagerViewModel.ttsSpeechRate.collectAsState()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -73,22 +74,22 @@ fun SettingsDialog(
                             ThemeButton(
                                 text = "Claro",
                                 icon = Icons.Default.LightMode,
-                                isSelected = viewModel.appTheme == AppTheme.LIGHT,
-                                onClick = { viewModel.appTheme = AppTheme.LIGHT },
+                                isSelected = soundboardViewModel.appTheme == AppTheme.LIGHT,
+                                onClick = { soundboardViewModel.appTheme = AppTheme.LIGHT },
                                 modifier = Modifier.weight(1f)
                             )
                             ThemeButton(
                                 text = "Oscuro",
                                 icon = Icons.Default.DarkMode,
-                                isSelected = viewModel.appTheme == AppTheme.DARK,
-                                onClick = { viewModel.appTheme = AppTheme.DARK },
+                                isSelected = soundboardViewModel.appTheme == AppTheme.DARK,
+                                onClick = { soundboardViewModel.appTheme = AppTheme.DARK },
                                 modifier = Modifier.weight(1f)
                             )
                             ThemeButton(
                                 text = "Daltónico",
                                 icon = Icons.Default.Contrast,
-                                isSelected = viewModel.appTheme == AppTheme.COLORBLIND,
-                                onClick = { viewModel.appTheme = AppTheme.COLORBLIND },
+                                isSelected = soundboardViewModel.appTheme == AppTheme.COLORBLIND,
+                                onClick = { soundboardViewModel.appTheme = AppTheme.COLORBLIND },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -104,7 +105,7 @@ fun SettingsDialog(
                                 onClick = { languageExpanded = true },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(viewModel.getLanguage())
+                                Text(soundManagerViewModel.getSpeechLanguage())
                                 Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(
@@ -116,7 +117,7 @@ fun SettingsDialog(
                                     DropdownMenuItem(
                                         text = { Text(language) },
                                         onClick = {
-                                            viewModel.updateLanguage(language)
+                                            soundManagerViewModel.updateSpeechLanguage(language)
                                             languageExpanded = false
                                         }
                                     )
@@ -152,7 +153,7 @@ fun SettingsDialog(
                                 val isSelected = currentPitch == pitch
                                 FilterChip(
                                     selected = isSelected,
-                                    onClick = { viewModel.setPitch(pitch) },
+                                    onClick = { soundManagerViewModel.setPitch(pitch) },
                                     label = { Text(text = "") },
                                     shape = CircleShape,
                                     modifier = Modifier.size(40.dp),
@@ -170,7 +171,7 @@ fun SettingsDialog(
                         Text("Velocidad: ${String.format("%.1f", currentSpeechRate)}")
                         Slider(
                             value = currentSpeechRate,
-                            onValueChange = { viewModel.setSpeechRate(it) },
+                            onValueChange = { soundManagerViewModel.setSpeechRate(it) },
                             valueRange = 0.5f..2.0f
                         )
                     }

@@ -1,6 +1,7 @@
 package com.sindicato.aplicacionaccesible.ui.comunicacion
 
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognitionListener
@@ -9,24 +10,28 @@ import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.AppDatabase
 import com.sindicato.aplicacionaccesible.data.PhraseEntity
+import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
 
-class ComunicacionViewModel(application: Application) : AndroidViewModel(application), RecognitionListener {
+class ComunicacionViewModel(var context: Context) : ViewModel(), RecognitionListener {
 
-    private val phraseDao = AppDatabase.getDatabase(application).phraseDao()
+    private val phraseDao = AppDatabase.getDatabase(context).phraseDao()
     private val _uiState = MutableStateFlow(ComunicacionUiState())
     val uiState: StateFlow<ComunicacionUiState> = _uiState.asStateFlow()
 
-    private var tts: TextToSpeech? = null
+    //private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
 
+
+
     init {
-        setupTts()
+        //setupTts()
         setupSpeechRecognizer()
         observePhrases()
     }
@@ -54,39 +59,39 @@ class ComunicacionViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    private fun setupTts() {
-        _uiState.update { it.copy(ttsStatus = TtsStatus.CARGANDO) }
-        tts = TextToSpeech(getApplication()) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.getDefault()
-                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                        _uiState.update { it.copy(ttsStatus = TtsStatus.REPRODUCIENDO) }
-                    }
-
-                    override fun onDone(utteranceId: String?) {
-                        _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
-                    }
-
-                    @Deprecated("Deprecated in Java")
-                    override fun onError(utteranceId: String?) {
-                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS") }
-                    }
-
-                    override fun onError(utteranceId: String?, errorCode: Int) {
-                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS: $errorCode") }
-                    }
-                })
-                _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
-            } else {
-                _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "No se pudo inicializar TTS") }
-            }
-        }
-    }
+//    private fun setupTts() {
+//        _uiState.update { it.copy(ttsStatus = TtsStatus.CARGANDO) }
+//        tts = TextToSpeech(context) { status ->
+//            if (status == TextToSpeech.SUCCESS) {
+//                TTSManager.language = Locale.getDefault()
+//                TTSManager.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+//                    override fun onStart(utteranceId: String?) {
+//                        _uiState.update { it.copy(ttsStatus = TtsStatus.REPRODUCIENDO) }
+//                    }
+//
+//                    override fun onDone(utteranceId: String?) {
+//                        _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
+//                    }
+//
+//                    @Deprecated("Deprecated in Java")
+//                    override fun onError(utteranceId: String?) {
+//                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS") }
+//                    }
+//
+//                    override fun onError(utteranceId: String?, errorCode: Int) {
+//                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS: $errorCode") }
+//                    }
+//                })
+//                _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
+//            } else {
+//                _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "No se pudo inicializar TTS") }
+//            }
+//        }
+//    }
 
     private fun setupSpeechRecognizer() {
-        if (SpeechRecognizer.isRecognitionAvailable(getApplication())) {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(getApplication())
+        if (SpeechRecognizer.isRecognitionAvailable(context)) {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
             speechRecognizer?.setRecognitionListener(this)
         } else {
             _uiState.update { it.copy(errorMessage = "Reconocimiento de voz no disponible") }
@@ -108,7 +113,7 @@ class ComunicacionViewModel(application: Application) : AndroidViewModel(applica
     fun speak() {
         val text = _uiState.value.ttsText
         if (text.isNotBlank()) {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_id")
+            TTSManager.speak(text)
         }
     }
 
@@ -161,10 +166,31 @@ class ComunicacionViewModel(application: Application) : AndroidViewModel(applica
     override fun onPartialResults(partialResults: Bundle?) {}
     override fun onEvent(eventType: Int, params: Bundle?) {}
 
-    override fun onCleared() {
-        tts?.stop()
-        tts?.shutdown()
-        speechRecognizer?.destroy()
-        super.onCleared()
-    }
+//    override fun onCleared() {
+//        tts?.stop()
+//        tts?.shutdown()
+//        speechRecognizer?.destroy()
+//        super.onCleared()
+//    }
+//
+//
+//    fun updateLanguage(language: String) {
+//        val locale = if (language == "Español") Locale("es", "ES") else Locale.ENGLISH
+//        TTSManager.language = locale
+//    }
+//
+//    fun getLanguage(): String {
+//        return TTSManager.language.toString()
+//    }
+//
+//    fun setSpeechRate(speed: Float){
+//        TTSManager.setSpeechRate(speed)
+//        _ttsSpeechRate.value = speed
+//    }
+//
+//
+//    fun setPitch(pitch: Float){
+//        TTSManager.setPitch(pitch)
+//        _ttsPitch.value = pitch
+//    }
 }

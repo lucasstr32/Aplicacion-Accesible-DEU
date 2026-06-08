@@ -28,20 +28,23 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.data.PhraseEntity
+import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComunicacionScreen(
-    viewModel: ComunicacionViewModel = viewModel()
+    comunicacionViewModel: ComunicacionViewModel,
+    soundManagerViewModel: SoundManagerViewModel
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by comunicacionViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            viewModel.startListening()
+            comunicacionViewModel.startListening()
         }
     }
 
@@ -53,7 +56,7 @@ fun ComunicacionScreen(
     ) {
         ModeSelector(
             selectedMode = uiState.mode,
-            onModeSelected = { viewModel.changeMode(it) }
+            onModeSelected = { comunicacionViewModel.changeMode(it) }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -69,12 +72,12 @@ fun ComunicacionScreen(
                 ComunicacionMode.TEXT_TO_SPEECH -> {
                     TtsSection(
                         text = uiState.ttsText,
-                        onTextChanged = { viewModel.onTtsTextChanged(it) },
+                        onTextChanged = { comunicacionViewModel.onTtsTextChanged(it) },
                         status = uiState.ttsStatus,
-                        onSpeak = { viewModel.speak() },
-                        onSavePhrase = { viewModel.saveCurrentTtsAsPhrase() },
+                        onSpeak = { comunicacionViewModel.speak() },
+                        onSavePhrase = { comunicacionViewModel.saveCurrentTtsAsPhrase() },
                         savedPhrases = uiState.savedPhrases,
-                        onDeletePhrase = { viewModel.deletePhrase(it) }
+                        onDeletePhrase = { comunicacionViewModel.deletePhrase(it) }
                     )
                 }
                 ComunicacionMode.SPEECH_TO_TEXT -> {
@@ -88,18 +91,18 @@ fun ComunicacionScreen(
                             )
                             if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
                                 if (uiState.sttStatus == SttStatus.ESCUCHANDO) {
-                                    viewModel.stopListening()
+                                    comunicacionViewModel.stopListening()
                                 } else {
-                                    viewModel.startListening()
+                                    comunicacionViewModel.startListening()
                                 }
                             } else {
                                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                             }
                         },
-                        onClearText = { viewModel.onSttTextChanged("") },
-                        onUseText = { 
-                            viewModel.onTtsTextChanged(it)
-                            viewModel.changeMode(ComunicacionMode.TEXT_TO_SPEECH)
+                        onClearText = { comunicacionViewModel.onSttTextChanged("") },
+                        onUseText = {
+                            comunicacionViewModel.onTtsTextChanged(it)
+                            comunicacionViewModel.changeMode(ComunicacionMode.TEXT_TO_SPEECH)
                         }
                     )
                 }

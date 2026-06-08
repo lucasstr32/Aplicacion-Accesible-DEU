@@ -74,26 +74,35 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.theme.SafeColors
 import com.sindicato.aplicacionaccesible.ui.theme.getContrastColor
+import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview()
 fun SoundboardPreview(){
-    val viewModel: SoundboardViewModel = viewModel()
-    Soundboard(viewModel, false)
+    val soundboardViewModel: SoundboardViewModel = viewModel()
+    val soundManagerViewModel: SoundManagerViewModel = viewModel()
+    Soundboard(soundboardViewModel, soundManagerViewModel, false)
 }
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun Soundboard(viewModel: SoundboardViewModel, isColorblindMode: Boolean){
+fun Soundboard(
+    soundboardViewModel: SoundboardViewModel,
+    soundManagerViewModel: SoundManagerViewModel,
+    isColorblindMode: Boolean
+){
     Scaffold(
-        topBar = { SoundboardTopBar(viewModel) },
+        topBar = { SoundboardTopBar(soundboardViewModel) },
         content = { padding -> 
             Box(modifier = Modifier.padding(padding)) {
-                SoundGrid(viewModel, isColorblindMode)
+                SoundGrid(
+                    soundboardViewModel,
+                    soundManagerViewModel,
+                    isColorblindMode)
             }
         },
     )
@@ -101,9 +110,13 @@ fun Soundboard(viewModel: SoundboardViewModel, isColorblindMode: Boolean){
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
+fun SoundGrid(
+    soundboardViewModel: SoundboardViewModel,
+    soundManagerViewModel: SoundManagerViewModel,
+    isColorblindMode: Boolean
+) {
     val context = LocalContext.current
-    val currentTemplate = viewModel.templates.getOrNull(viewModel.currentTemplateIndex)
+    val currentTemplate = soundboardViewModel.templates.getOrNull(soundboardViewModel.currentTemplateIndex)
     val totalCells = 20
 
     var showDialogAtPosition by remember { mutableStateOf<Int?>(null) }
@@ -114,15 +127,16 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
         AddButtonDialog(
             onDismiss = { showDialogAtPosition = null },
             onConfirm = { name, effect, tts, selectedColor, selectedIcon ->
-                viewModel.addButtonToCurrentTemplate(name, effect, tts, selectedColor, selectedIcon, position)
+                soundboardViewModel.addButtonToCurrentTemplate(name, effect, tts, selectedColor, selectedIcon, position)
                 showDialogAtPosition = null
             },
-            soundboardViewModel = viewModel
+            soundboardViewModel = soundboardViewModel,
+            soundManagerViewModel = soundManagerViewModel
         )
     }
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(viewModel.columnCount),
+        columns = GridCells.Fixed(soundboardViewModel.columnCount),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -136,15 +150,15 @@ fun SoundGrid(viewModel: SoundboardViewModel, isColorblindMode: Boolean) {
                     button = buttonAtPosition,
                     isColorblindMode = isColorblindMode,
                     onClick = {
-                        if (!viewModel.isEditMode) {
-                            viewModel.playSound(context, buttonAtPosition)
+                        if (!soundboardViewModel.isEditMode) {
+                            soundManagerViewModel.playSound(context, buttonAtPosition)
                         } else {
-                            viewModel.deleteButtonAtPosition(buttonAtPosition.gridPosition)
+                            soundboardViewModel.deleteButtonAtPosition(buttonAtPosition.gridPosition)
                         }
                     },
-                    viewModel
+                    soundboardViewModel
                 )
-            } else if (viewModel.isEditMode) {
+            } else if (soundboardViewModel.isEditMode) {
                 EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
             }
         }
@@ -157,13 +171,13 @@ fun SoundButtonItem(
     button: SoundButton,
     isColorblindMode: Boolean,
     onClick: () -> Unit,
-    viewModel: SoundboardViewModel
+    soundboardViewModel: SoundboardViewModel
 ) {
     val backgroundColor = Color(button.color)
     val contentColor = getContrastColor(backgroundColor)
 
     // Aplicar transparencia en modo edición
-    val alpha = if (viewModel.isEditMode) 0.5f else 1f
+    val alpha = if (soundboardViewModel.isEditMode) 0.5f else 1f
 
     ElevatedButton(
         onClick = onClick,
@@ -178,7 +192,7 @@ fun SoundButtonItem(
         border = if (isColorblindMode) BorderStroke(2.dp, contentColor.copy(alpha = alpha)) else null
     ) {
         Box(contentAlignment = Alignment.Center) {
-            if (viewModel.isEditMode) {
+            if (soundboardViewModel.isEditMode) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
                     // Icono de eliminación en modo edición
@@ -217,10 +231,14 @@ fun SoundButtonItem(
 @Preview(name = "Add Button Dialog", showBackground = true)
 @Composable
 fun AddButtonDialogPreview() {
+    val soundboardViewModel: SoundboardViewModel = viewModel()
+    val soundManagerViewModel: SoundManagerViewModel = viewModel()
     AddButtonDialog(
+
         onDismiss = { /* Do nothing */ },
         onConfirm = { name, effect, tts, color, iconRes -> println("Preview: $name with $effect or $tts")},
-        soundboardViewModel = viewModel()
+        soundboardViewModel = soundboardViewModel,
+        soundManagerViewModel = soundManagerViewModel
     )
 }
 
@@ -242,7 +260,8 @@ val availableIcons = listOf(
 fun AddButtonDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, SoundEffect?, String?, Long, Int) -> Unit,
-    soundboardViewModel: SoundboardViewModel
+    soundboardViewModel: SoundboardViewModel,
+    soundManagerViewModel: SoundManagerViewModel
 ) {
     var name by remember { mutableStateOf("") }
     var selectedEffect by remember { mutableStateOf<SoundEffect?>(SoundEffect.BOMB) }
@@ -321,7 +340,7 @@ fun AddButtonDialog(
                                             IconButton(
                                                 onClick = {
                                                     // This plays the sound without closing the menu
-                                                    soundboardViewModel.previewSound(context, effect)
+                                                    soundManagerViewModel.previewSound(context, effect)
                                                 },
                                                 modifier = Modifier.size(32.dp)
                                             ) {
@@ -463,7 +482,7 @@ fun AddButtonDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SoundboardTopBar(viewModel: SoundboardViewModel) {
+fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var newTemplateName by remember { mutableStateOf("") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -487,7 +506,7 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                 TextButton(
                     onClick = {
                         if (newTemplateName.isNotBlank()) {
-                            viewModel.addTemplate(newTemplateName)
+                            soundboardViewModel.addTemplate(newTemplateName)
                             showDialog = false
                             newTemplateName = ""
                         }
@@ -516,8 +535,8 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteCurrentTemplate()
-                        viewModel.toggleEditMode()
+                        soundboardViewModel.deleteCurrentTemplate()
+                        soundboardViewModel.toggleEditMode()
                         showDeleteConfirm = false
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
@@ -545,8 +564,8 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                if (viewModel.isEditMode) {
-                    val template = viewModel.templates.getOrNull(viewModel.currentTemplateIndex)
+                if (soundboardViewModel.isEditMode) {
+                    val template = soundboardViewModel.templates.getOrNull(soundboardViewModel.currentTemplateIndex)
                     if (template != null) {
                         item {
                             FilterChip(
@@ -557,10 +576,10 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                         }
                     }
                 } else {
-                    itemsIndexed(viewModel.templates) { index, template ->
+                    itemsIndexed(soundboardViewModel.templates) { index, template ->
                         FilterChip(
-                            selected = viewModel.currentTemplateIndex == index,
-                            onClick = { viewModel.currentTemplateIndex = index },
+                            selected = soundboardViewModel.currentTemplateIndex == index,
+                            onClick = { soundboardViewModel.currentTemplateIndex = index },
                             label = { Text(template.name) }
                         )
                     }
@@ -568,12 +587,12 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
             }
         },
         actions = {
-            if (viewModel.isEditMode) {
+            if (soundboardViewModel.isEditMode) {
                 IconButton(onClick = { showDeleteConfirm = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Borrar Plantilla", tint = Color.Red)
                 }
                 Button(
-                    onClick = { viewModel.toggleEditMode() },
+                    onClick = { soundboardViewModel.toggleEditMode() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFC8E6C9), // Light Green
                         contentColor = Color.Black
@@ -583,9 +602,9 @@ fun SoundboardTopBar(viewModel: SoundboardViewModel) {
                     Text("Aceptar")
                 }
             } else {
-                if(viewModel.templates.isNotEmpty()) {
+                if(soundboardViewModel.templates.isNotEmpty()) {
                     TextButton(
-                        onClick = { viewModel.toggleEditMode() }
+                        onClick = { soundboardViewModel.toggleEditMode() }
                     ) {
                         Text("Editar")
                     }

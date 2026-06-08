@@ -39,14 +39,11 @@ class SoundboardViewModel(
 //    var ttsPitch by mutableFloatStateOf(1.0f)
 //    var ttsSpeed by mutableFloatStateOf(1.0f)
 
-    private var mediaPlayer: MediaPlayer? = null
-    //private var tts: TextToSpeech? = null
-    private var isTtsReady = false
+//    private var mediaPlayer: MediaPlayer? = null
+//    //private var tts: TextToSpeech? = null
+//    private var isTtsReady = false
 
-    private val _ttsPitch = MutableStateFlow(1.0f)
-    val ttsPitch: StateFlow<Float> = _ttsPitch.asStateFlow()
-    private val _ttsSpeechRate = MutableStateFlow(1.0f)
-    val ttsSpeechRate: StateFlow<Float> = _ttsSpeechRate.asStateFlow()
+
 
 
     init {
@@ -112,23 +109,23 @@ class SoundboardViewModel(
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
     }
 
-    fun playSound(context: Context, button: SoundButton) {
-        if (button.ttsText != null) {
-            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
-
-//            initTts(context)
-//            if (isTtsReady) {
-//                updateTtsSettings()
-//                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
-//            }
-            TTSManager.speak(button.ttsText)
-        } else if (button.soundEffect != null) {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
-            mediaPlayer?.start()
-        }
-    }
+//    fun playSound(context: Context, button: SoundButton) {
+//        if (button.ttsText != null) {
+//            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
+//
+////            initTts(context)
+////            if (isTtsReady) {
+////                updateTtsSettings()
+////                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
+////            }
+//            TTSManager.speak(button.ttsText)
+//        } else if (button.soundEffect != null) {
+//            mediaPlayer?.stop()
+//            mediaPlayer?.release()
+//            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
+//            mediaPlayer?.start()
+//        }
+//    }
 
     fun deleteButtonAtPosition(position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
@@ -136,32 +133,15 @@ class SoundboardViewModel(
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
     }
 
-    fun previewSound(context: Context, soundEffect: SoundEffect) {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
-        mediaPlayer?.start()
-    }
-
-    fun updateLanguage(language: String) {
-        val locale = if (language == "Español") Locale("es", "ES") else Locale.ENGLISH
-        TTSManager.language = locale
-    }
-
-    fun getLanguage(): String {
-        return TTSManager.language.toString()
-    }
-
-    fun setSpeechRate(speed: Float){
-        TTSManager.setSpeechRate(speed)
-        _ttsSpeechRate.value = speed
-    }
+//    fun previewSound(context: Context, soundEffect: SoundEffect) {
+//        mediaPlayer?.stop()
+//        mediaPlayer?.release()
+//        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
+//        mediaPlayer?.start()
+//    }
 
 
-    fun setPitch(pitch: Float){
-        TTSManager.setPitch(pitch)
-        _ttsPitch.value = pitch
-    }
+
 
 
 

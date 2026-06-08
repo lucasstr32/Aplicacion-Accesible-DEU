@@ -29,12 +29,14 @@ import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
 import com.sindicato.aplicacionaccesible.ui.components.SettingsDialog
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
+import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionViewModel
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.signlanguage.SignLanguageGrid
 import com.sindicato.aplicacionaccesible.ui.sound.SoundEffectManager
 import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
+import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -49,17 +51,21 @@ class MainActivity : ComponentActivity() {
         TTSManager.init(this)
 
         // Seed the database
-        val dao = AppDatabase.getDatabase(applicationContext).signLanguageDao()
+        val dao = AppDatabase.getDatabase(this).signLanguageDao()
         lifecycleScope.launch {
             DatabaseSeeder.seedDatabase(dao)
         }
 
         setContent {
             val soundboardViewModel = SoundboardViewModel()
+            val soundManagerViewModel = SoundManagerViewModel()
+            val comunicacionViewModel = ComunicacionViewModel(this)
 
             AplicacionAccesibleTheme(appTheme = soundboardViewModel.appTheme) {
                 MainScreen(
-                    soundboardViewModel = soundboardViewModel
+                    soundboardViewModel = soundboardViewModel,
+                    soundManagerViewModel = soundManagerViewModel,
+                    comunicacionViewModel = ComunicacionViewModel(this)
                 )
             }
         }
@@ -75,7 +81,9 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    soundboardViewModel: SoundboardViewModel
+    soundboardViewModel: SoundboardViewModel,
+    soundManagerViewModel: SoundManagerViewModel,
+    comunicacionViewModel: ComunicacionViewModel
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var showHelpDialog by remember { mutableStateOf(false) }
@@ -108,7 +116,8 @@ fun MainScreen(
 
     if (showSettings) {
         SettingsDialog(
-            viewModel = soundboardViewModel,
+            soundboardViewModel = soundboardViewModel,
+            soundManagerViewModel = soundManagerViewModel,
             onDismiss = { showSettings = false }
         )
     }
@@ -183,9 +192,13 @@ fun MainScreen(
             when (selectedTab) {
                 0 -> Soundboard(
                     soundboardViewModel,
+                    soundManagerViewModel,
                     soundboardViewModel.appTheme == AppTheme.COLORBLIND,
                 )
-                1 -> ComunicacionScreen()
+                1 -> ComunicacionScreen(
+                    comunicacionViewModel,
+                    soundManagerViewModel
+                )
                 2 -> SignLanguageGrid()
             }
         }
@@ -207,8 +220,12 @@ fun MainScreen(
 )
 @Composable
 fun MainScreenPreview() {
-    val viewModel: SoundboardViewModel = viewModel()
+    val soundboardViewModel: SoundboardViewModel = viewModel()
+    val soundManagerViewModel: SoundManagerViewModel = viewModel()
+    val comunicacionViewModel: ComunicacionViewModel = viewModel()
     MainScreen(
-        soundboardViewModel = viewModel
+        soundboardViewModel = soundboardViewModel,
+        soundManagerViewModel = soundManagerViewModel,
+        comunicacionViewModel = comunicacionViewModel
     )
 }
