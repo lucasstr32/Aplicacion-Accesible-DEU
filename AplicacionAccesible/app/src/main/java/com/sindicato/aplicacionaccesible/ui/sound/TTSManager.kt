@@ -20,7 +20,8 @@ object TTSManager {
     private var isInitialized = false
     private var tts: TextToSpeech? = null
     var language = Locale("es", "ES")
-
+    private var speechRate = 1.0F
+    private var pitch = 1.0F
 
 
     val ttsText: String = ""
@@ -82,7 +83,16 @@ object TTSManager {
         tts?.setPitch(pitch)
     }
 
+    fun getPitch(): Float{
+        return pitch
+    }
+
+    fun getSpeechRate(): Float{
+        return speechRate
+    }
+
     fun setSpeechRate(rate: Float){
+        speechRate = rate
         tts?.setSpeechRate(rate)
     }
 

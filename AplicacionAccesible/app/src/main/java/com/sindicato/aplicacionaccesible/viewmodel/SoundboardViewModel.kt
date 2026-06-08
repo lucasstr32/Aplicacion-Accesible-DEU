@@ -22,7 +22,6 @@ import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import java.util.*
 
 class SoundboardViewModel(
-
 ): ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
@@ -33,13 +32,14 @@ class SoundboardViewModel(
 
     // Configuración de la aplicación (Global)
     var appTheme by mutableStateOf(AppTheme.LIGHT)
-    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
-    var ttsPitch by mutableFloatStateOf(1.0f)
-    var ttsSpeed by mutableFloatStateOf(1.0f)
+//    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
+//    var ttsPitch by mutableFloatStateOf(1.0f)
+//    var ttsSpeed by mutableFloatStateOf(1.0f)
 
     private var mediaPlayer: MediaPlayer? = null
     //private var tts: TextToSpeech? = null
     private var isTtsReady = false
+
 
     init {
         _templates.add(
@@ -65,13 +65,7 @@ class SoundboardViewModel(
 //        }
 //    }
 
-    private fun updateTtsSettings() {
-        val tts = TTSManager
-        val locale = if (appLanguage == "Español") Locale("es", "ES") else Locale.ENGLISH
-        tts.language = locale
-        tts.setPitch(ttsPitch)
-        tts.setSpeechRate(ttsSpeed)
-    }
+
 
     fun addTemplate(name: String) {
         _templates.add(Template(name = name))
@@ -111,7 +105,6 @@ class SoundboardViewModel(
     }
 
     fun playSound(context: Context, button: SoundButton) {
-        val tts = TTSManager
         if (button.ttsText != null) {
             Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
 
@@ -120,7 +113,7 @@ class SoundboardViewModel(
 //                updateTtsSettings()
 //                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
 //            }
-            tts.speak(button.ttsText)
+            TTSManager.speak(button.ttsText)
         } else if (button.soundEffect != null) {
             mediaPlayer?.stop()
             mediaPlayer?.release()
@@ -143,10 +136,28 @@ class SoundboardViewModel(
     }
 
     fun updateLanguage(language: String) {
-        appLanguage = language
-        if (isTtsReady) {
-            updateTtsSettings()
-        }
+        val locale = if (language == "Español") Locale("es", "ES") else Locale.ENGLISH
+        TTSManager.language = locale
+    }
+
+    fun getLanguage(): String {
+        return TTSManager.language.toString()
+    }
+
+    fun setSpeechRate(speed: Float){
+        TTSManager.setSpeechRate(speed)
+    }
+
+    fun getSpeechRate(): Float{
+        return TTSManager.getSpeechRate()
+    }
+
+    fun setPitch(pitch: Float){
+        TTSManager.setPitch(pitch)
+    }
+
+    fun getTtsPitch(): Float{
+        return TTSManager.getPitch()
     }
 
 //    override fun onCleared() {

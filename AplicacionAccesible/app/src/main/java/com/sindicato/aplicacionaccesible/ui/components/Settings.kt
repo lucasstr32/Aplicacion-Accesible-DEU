@@ -101,7 +101,7 @@ fun SettingsDialog(
                                 onClick = { languageExpanded = true },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(viewModel.appLanguage)
+                                Text(viewModel.getLanguage())
                                 Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(
@@ -146,10 +146,10 @@ fun SettingsDialog(
                         ) {
                             val pitchOptions = listOf(0.5f, 0.75f, 1.0f, 1.5f, 2.0f)
                             pitchOptions.forEach { pitch ->
-                                val isSelected = viewModel.ttsPitch == pitch
+                                val isSelected = viewModel.getTtsPitch() == pitch
                                 FilterChip(
                                     selected = isSelected,
-                                    onClick = { viewModel.ttsPitch = pitch },
+                                    onClick = { viewModel.setPitch(pitch) },
                                     label = { Text(text = "") },
                                     shape = CircleShape,
                                     modifier = Modifier.size(40.dp),
@@ -164,10 +164,10 @@ fun SettingsDialog(
                         Spacer(Modifier.height(24.dp))
                         
                         // VELOCIDAD (Speech Rate)
-                        Text("Velocidad: ${String.format("%.1f", viewModel.ttsSpeed)}")
+                        Text("Velocidad: ${String.format("%.1f", viewModel.getSpeechRate())}")
                         Slider(
-                            value = viewModel.ttsSpeed,
-                            onValueChange = { viewModel.ttsSpeed = it },
+                            value = viewModel.getSpeechRate(),
+                            onValueChange = { viewModel.setSpeechRate(it) },
                             valueRange = 0.5f..2.0f
                         )
                     }
