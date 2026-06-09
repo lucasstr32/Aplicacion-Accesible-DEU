@@ -72,6 +72,10 @@ class SoundboardViewModel: ViewModel() {
     fun addTemplate(name: String) {
         _templates.add(Template(name = name))
         currentTemplateIndex = _templates.size - 1
+        isEditMode = true // Ponemos directamente en edit mode
+
+
+
     }
 
     fun deleteCurrentTemplate() {
