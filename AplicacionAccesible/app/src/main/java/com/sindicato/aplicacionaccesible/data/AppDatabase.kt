@@ -4,11 +4,29 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.sindicato.aplicacionaccesible.data.dao.ButtonDao
+import com.sindicato.aplicacionaccesible.data.dao.TemplateDao
+import com.sindicato.aplicacionaccesible.data.entity.ButtonEntity
+import com.sindicato.aplicacionaccesible.data.entity.TemplateEntity
 
-@Database(entities = [SignLanguageEntity::class, PhraseEntity::class], version = 2, exportSchema = false)
+@Database(
+    entities =
+        [
+            SignLanguageEntity::class,
+            PhraseEntity::class,
+            TemplateEntity::class,
+            ButtonEntity::class
+        ],
+    version = 3,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun signLanguageDao(): SignLanguageDao
     abstract fun phraseDao(): PhraseDao
+
+    abstract fun templateDao(): TemplateDao
+    abstract fun buttonDao(): ButtonDao
+
 
     companion object {
         @Volatile

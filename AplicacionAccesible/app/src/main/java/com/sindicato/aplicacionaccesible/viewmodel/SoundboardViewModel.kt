@@ -18,13 +18,22 @@ import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewModelScope
+import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
+import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
 import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.*
 
-class SoundboardViewModel: ViewModel() {
+class SoundboardViewModel(
+    val templateRepository: TemplateRepository,
+    val buttonRepository: ButtonRepository
+): ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
     val templates: List<Template> = _templates
@@ -45,13 +54,14 @@ class SoundboardViewModel: ViewModel() {
 
 
 
-    init {
-        _templates.add(
-            Template(
-                "Default", listOf()
 
-            )
-        )
+    init {
+//        _templates.add(
+//            Template(
+//                name = "Default",
+//                buttons = listOf()
+//            )
+//        )
     }
 
 //    private fun initTts(context: Context) {
@@ -70,11 +80,15 @@ class SoundboardViewModel: ViewModel() {
 
 
     fun addTemplate(name: String) {
-        _templates.add(Template(name = name))
+        val template = Template(name = name)
+        _templates.add(template)
         currentTemplateIndex = _templates.size - 1
         isEditMode = true // Ponemos directamente en edit mode
 
+        viewModelScope.launch {
+            templateRepository.insertTemplate(template)
 
+        }
 
     }
 

@@ -18,5 +18,5 @@ interface TemplateDao {
     fun getTemplateById(templateId: Int): TemplateWithButtons?
 
     @Insert
-    suspend fun insertTemplate(template: TemplateEntity): Int
+    suspend fun insertTemplate(template: TemplateEntity)
 }

@@ -26,6 +26,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.data.AppDatabase
 import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
+import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
+import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
 import com.sindicato.aplicacionaccesible.ui.components.SettingsDialog
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
@@ -41,6 +43,16 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
+
+
+    lateinit var templateRepository: TemplateRepository
+        private set
+
+    lateinit var buttonRepository: ButtonRepository
+        private set
+
+
+
     @SuppressLint("ViewModelConstructorInComposable")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,13 +63,20 @@ class MainActivity : ComponentActivity() {
         TTSManager.init(this)
 
         // Seed the database
-        val dao = AppDatabase.getDatabase(this).signLanguageDao()
+        val signLanguageDao = AppDatabase.getDatabase(this).signLanguageDao()
         lifecycleScope.launch {
-            DatabaseSeeder.seedDatabase(dao)
+            DatabaseSeeder.seedDatabase(signLanguageDao)
         }
 
+        val database = AppDatabase.getDatabase(this)
+
+        templateRepository = TemplateRepository(database.templateDao())
+        buttonRepository = ButtonRepository(database.buttonDao())
+
+
+
         setContent {
-            val soundboardViewModel = SoundboardViewModel()
+            val soundboardViewModel = SoundboardViewModel(templateRepository, buttonRepository)
             val soundManagerViewModel = SoundManagerViewModel()
             val comunicacionViewModel = ComunicacionViewModel(this)
 

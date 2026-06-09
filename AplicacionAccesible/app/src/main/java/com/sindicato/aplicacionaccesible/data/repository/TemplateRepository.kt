@@ -32,9 +32,9 @@ class TemplateRepository(
         )
     }
 
-    suspend fun insertTemplate(template: Template): Int {
-        val entity = TemplateEntity(name = template.name)
-        return templateDao.insertTemplate(entity)
+    suspend fun insertTemplate(template: Template) {
+        val entity = TemplateEntity(id = template.id, name = template.name)
+        templateDao.insertTemplate(entity)
 
     }
 
