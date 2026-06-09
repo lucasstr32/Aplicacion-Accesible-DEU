@@ -127,7 +127,13 @@ fun SoundGrid(
         AddButtonDialog(
             onDismiss = { showDialogAtPosition = null },
             onConfirm = { name, effect, tts, selectedColor, selectedIcon ->
-                soundboardViewModel.addButtonToCurrentTemplate(name, effect, tts, selectedColor, selectedIcon, position)
+                soundboardViewModel.addButtonToCurrentTemplate(
+                    name,
+                    effect,
+                    tts,
+                    selectedColor,
+                    selectedIcon,
+                    position)
                 showDialogAtPosition = null
             },
             soundboardViewModel = soundboardViewModel,

@@ -13,10 +13,13 @@ interface TemplateDao {
 
     @Transaction
     @Query("SELECT * FROM templates")
-    fun getAllTemplatesWithButtons(): Flow<List<TemplateWithButtons>>
+    suspend fun getAllTemplatesWithButtons(): List<TemplateWithButtons>
     @Query("SELECT * FROM templates WHERE id = :templateId")
-    fun getTemplateById(templateId: Int): TemplateWithButtons?
+    suspend fun getTemplateById(templateId: Int): TemplateWithButtons?
 
     @Insert
     suspend fun insertTemplate(template: TemplateEntity)
+
+    @Query("DELETE FROM templates WHERE id = :templateId")
+    suspend fun deleteTemplateById(templateId: String)
 }

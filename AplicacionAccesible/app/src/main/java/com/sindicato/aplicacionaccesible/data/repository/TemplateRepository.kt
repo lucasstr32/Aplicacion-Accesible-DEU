@@ -38,4 +38,30 @@ class TemplateRepository(
 
     }
 
+    suspend fun getAllTemplates(): List<Template> {
+        val templatesWithButtons = templateDao.getAllTemplatesWithButtons()
+
+        return templatesWithButtons.map { relation ->
+            Template(
+                id = relation.template.id.toString(), // Ensure ID is mapped
+                name = relation.template.name,
+                buttons = relation.buttons.map { btn ->
+                    SoundButton(
+                        name = btn.name,
+                        gridPosition = btn.gridPosition,
+                        soundEffect = btn.soundEffect.let { SoundEffect.valueOf(it) },
+                        ttsText = btn.ttsText,
+                        color = btn.color,
+                        iconRes = btn.iconRes
+                    )
+                }
+            )
+        }
+    }
+
+    suspend fun deleteTemplateFromDb(templateId: String){
+        templateDao.deleteTemplateById(templateId)
+
+    }
+
 }

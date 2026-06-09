@@ -1,11 +1,8 @@
 package com.sindicato.aplicacionaccesible.viewmodel
 
-import android.content.Context
-import android.media.MediaPlayer
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,19 +13,11 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 
-import android.speech.tts.TextToSpeech
 import android.util.Log
-import androidx.activity.viewModels
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
-import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.*
 
 class SoundboardViewModel(
     val templateRepository: TemplateRepository,
@@ -56,12 +45,7 @@ class SoundboardViewModel(
 
 
     init {
-//        _templates.add(
-//            Template(
-//                name = "Default",
-//                buttons = listOf()
-//            )
-//        )
+        loadTemplatesFromDb()
     }
 
 //    private fun initTts(context: Context) {
@@ -89,12 +73,33 @@ class SoundboardViewModel(
             templateRepository.insertTemplate(template)
 
         }
+    }
 
+
+    private fun loadTemplatesFromDb() {
+        viewModelScope.launch {
+            try {
+                val dbTemplates = templateRepository.getAllTemplates()
+                _templates.clear()
+                _templates.addAll(dbTemplates)
+
+                // Log to verify info is arriving
+                Log.d("Templates", "Loaded ${dbTemplates.size} templates from DB")
+            } catch (e: Exception) {
+                Log.e("Templates", "Error loading templates", e)
+            }
+        }
     }
 
     fun deleteCurrentTemplate() {
         if (_templates.isNotEmpty()) {
+            val templateId = _templates[currentTemplateIndex].id
             _templates.removeAt(currentTemplateIndex)
+
+            viewModelScope.launch {
+                templateRepository.deleteTemplateFromDb(templateId)
+            }
+
             if (currentTemplateIndex >= _templates.size) {
                 currentTemplateIndex = _templates.size - 1
             }
