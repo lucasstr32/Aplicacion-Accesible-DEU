@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.sindicato.aplicacionaccesible.data.entity.ButtonEntity
+import org.w3c.dom.Text
 
 @Dao
 interface ButtonDao {
@@ -14,7 +15,16 @@ interface ButtonDao {
     @Insert
     suspend fun insertButton(button: ButtonEntity)
 
-    @Query("DELETE FROM buttons WHERE templateId = :templateId AND name = :buttonName")
-    suspend fun deleteButton(templateId: String, buttonName: String)
+    @Query("DELETE FROM buttons WHERE templateId = :templateId AND gridPosition = :gridPosition")
+    suspend fun deleteButton(templateId: String, gridPosition: Int)
 
+    @Query("UPDATE buttons SET " +
+            "name = :newName, " +
+            "soundEffect = :newEffect, " +
+            "ttsText = :newTtsText, "+
+            "color = :newColor, " +
+            "iconRes = :newIcon " +
+            "WHERE templateId = :templateId AND gridPosition = :gridPosition")
+    suspend fun updateButton(templateId: String, gridPosition: Int, newName: String,
+                             newEffect: String, newTtsText: String?, newColor: Long, newIcon: Int)
 }

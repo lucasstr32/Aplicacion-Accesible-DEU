@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -120,8 +123,7 @@ fun SoundGrid(
     val totalCells = 20
 
     var showDialogAtPosition by remember { mutableStateOf<Int?>(null) }
-
-
+    var editingButton by remember { mutableStateOf<SoundButton?>(null) }
 
     showDialogAtPosition?.let { position ->
         AddButtonDialog(
@@ -133,10 +135,28 @@ fun SoundGrid(
                     tts,
                     selectedColor,
                     selectedIcon,
-                    position)
+                    position
+                )
                 showDialogAtPosition = null
             },
-            soundboardViewModel = soundboardViewModel,
+            onDelete = {},
+            initialButton = null,
+            soundManagerViewModel
+        )
+    }
+
+    editingButton?.let { button ->
+        AddButtonDialog(
+            onDismiss = { editingButton = null },
+            onConfirm = { name, effect, tts, color, icon ->
+                soundboardViewModel.updateButton(button, name, effect, tts, color, icon)
+                editingButton = null
+            },
+            onDelete = {
+                soundboardViewModel.deleteButtonAtPosition(button.gridPosition)
+                editingButton = null
+            },
+            initialButton = button,
             soundManagerViewModel = soundManagerViewModel
         )
     }
@@ -151,18 +171,41 @@ fun SoundGrid(
         items(totalCells) { index ->
             val buttonAtPosition = currentTemplate?.buttons?.find { it.gridPosition == index }
 
+            showDialogAtPosition?.let { position ->
+                AddButtonDialog(
+                    onDismiss = { showDialogAtPosition = null },
+                    onConfirm = { name, effect, tts, color, icon ->
+                        soundboardViewModel.addButtonToCurrentTemplate(
+                            name,
+                            effect,
+                            tts,
+                            color,
+                            icon,
+                            position
+                        )
+                        showDialogAtPosition = null
+                    },
+                    onDelete = {}, // Not needed for new buttons
+                    initialButton = null,
+                    soundManagerViewModel = soundManagerViewModel
+                )
+            }
+
             if (buttonAtPosition != null) {
                 SoundButtonItem(
                     button = buttonAtPosition,
                     isColorblindMode = isColorblindMode,
+                    onLongClick = {
+                        if (soundboardViewModel.isEditMode) {
+                            editingButton = buttonAtPosition
+                        }
+                    },
                     onClick = {
                         if (!soundboardViewModel.isEditMode) {
                             soundManagerViewModel.playSound(context, buttonAtPosition)
-                        } else {
-                            soundboardViewModel.deleteButton(buttonAtPosition)
                         }
                     },
-                    soundboardViewModel
+                    soundboardViewModel = soundboardViewModel
                 )
             } else if (soundboardViewModel.isEditMode) {
                 EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
@@ -177,6 +220,7 @@ fun SoundButtonItem(
     button: SoundButton,
     isColorblindMode: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     soundboardViewModel: SoundboardViewModel
 ) {
     val backgroundColor = Color(button.color)
@@ -185,49 +229,35 @@ fun SoundButtonItem(
     // Aplicar transparencia en modo edición
     val alpha = if (soundboardViewModel.isEditMode) 0.5f else 1f
 
-    ElevatedButton(
-        onClick = onClick,
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(80.dp)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = backgroundColor.copy(alpha = alpha),
-            contentColor = contentColor.copy(alpha = alpha)
-        ),
+        color = backgroundColor.copy(alpha = alpha),
+        contentColor = contentColor.copy(alpha = alpha),
+        tonalElevation = 4.dp,
         border = if (isColorblindMode) BorderStroke(2.dp, contentColor.copy(alpha = alpha)) else null
     ) {
         Box(contentAlignment = Alignment.Center) {
-            if (soundboardViewModel.isEditMode) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    // Icono de eliminación en modo edición
-                    Icon(
-                        imageVector = Icons.Default.RemoveCircle,
-                        contentDescription = "Eliminar",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(40.dp)
-                    )
-                    Text(
-                        text = button.name,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1
-                    )
-                }
-            } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = availableIcons.getOrNull(button.iconRes) ?: Icons.Default.MusicNote,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = button.name,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1
-                    )
-                }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = availableIcons.getOrNull(button.iconRes) ?: Icons.Default.MusicNote,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = button.name,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1
+                )
             }
+
         }
     }
 }
@@ -243,7 +273,8 @@ fun AddButtonDialogPreview() {
 
         onDismiss = { /* Do nothing */ },
         onConfirm = { name, effect, tts, color, iconRes -> println("Preview: $name with $effect or $tts")},
-        soundboardViewModel = soundboardViewModel,
+        onDelete = {},
+        initialButton = null,
         soundManagerViewModel = soundManagerViewModel
     )
 }
@@ -266,38 +297,44 @@ val availableIcons = listOf(
 fun AddButtonDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, SoundEffect?, String?, Long, Int) -> Unit,
-    soundboardViewModel: SoundboardViewModel,
+    onDelete: () -> Unit,
+    initialButton: SoundButton?,
     soundManagerViewModel: SoundManagerViewModel
 ) {
-    var name by remember { mutableStateOf("") }
-    var selectedEffect by remember { mutableStateOf<SoundEffect?>(SoundEffect.CLAPPING) }
-    var ttsText by remember { mutableStateOf("") }
+
     var expanded by remember { mutableStateOf(false) }
+
+    var name by remember { mutableStateOf(initialButton?.name ?: "") }
+    var selectedEffect by remember { mutableStateOf(initialButton?.soundEffect) }
+    var ttsText by remember { mutableStateOf(initialButton?.ttsText ?: "") }
+    var selectedIconIndex by remember { mutableIntStateOf(initialButton?.iconRes ?: 0) }
+    var selectedColor by remember {
+        mutableStateOf(initialButton?.let { Color(it.color) } ?: buttonColors[0])
+    }
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Botón", "Voz")
 
     var iconExpanded by remember { mutableStateOf(false) } // State for icon dropdown
-    var selectedIconIndex by remember { mutableIntStateOf(0) }
 
-    var selectedColor by remember { mutableStateOf(buttonColors[0]) }
 
     val context = LocalContext.current
 
 
     AlertDialog(
         onDismissRequest = onDismiss,
+
         title = {
 
             Column {
-                Text("Añadir Botón")
+                Text(if (initialButton == null) "Añadir Botón" else "Editar Botón")
                 // TabRow for switching between Button and Speech
-                androidx.compose.material3.TabRow(
+                TabRow(
                     selectedTabIndex = selectedTabIndex,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     tabs.forEachIndexed { index, title ->
-                        androidx.compose.material3.Tab(
+                        Tab(
                             selected = selectedTabIndex == index,
                             onClick = { selectedTabIndex = index },
                             text = { Text(title) }
@@ -306,6 +343,8 @@ fun AddButtonDialog(
                 }
             }
         },
+
+
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
@@ -458,27 +497,21 @@ fun AddButtonDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        val colorLong = selectedColor.toArgb().toLong()
 
-                        if (selectedTabIndex == 0) {
-                            onConfirm(name, selectedEffect, null, colorLong, selectedIconIndex)
-                        } else {
-                            if (ttsText.isNotBlank()) {
-                                onConfirm(name, null, ttsText, colorLong, selectedIconIndex)
-                            }
-                        }
-                    }
-                },
-                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
-            ) {
-                Text("Añadir")
+        confirmButton = {
+
+            TextButton(onClick = {
+                onConfirm(name, selectedEffect, ttsText, selectedColor.toArgb().toLong(), selectedIconIndex)
+            }) {
+                Text(if (initialButton == null) "Añadir" else "Guardar")
             }
         },
         dismissButton = {
+            if (initialButton != null) {
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
+                }
+            }
             TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }

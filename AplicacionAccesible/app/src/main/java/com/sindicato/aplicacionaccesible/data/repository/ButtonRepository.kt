@@ -1,5 +1,6 @@
 package com.sindicato.aplicacionaccesible.data.repository
 
+import android.widget.Button
 import com.sindicato.aplicacionaccesible.data.dao.ButtonDao
 import com.sindicato.aplicacionaccesible.data.entity.ButtonEntity
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
@@ -40,7 +41,13 @@ class ButtonRepository(
 
 
 
-    suspend fun deleteButton(templateId: String, buttonName: String){
-        buttonDao.deleteButton(templateId, buttonName)
+    suspend fun deleteButton(templateId: String, gridPosition: Int){
+        buttonDao.deleteButton(templateId, gridPosition)
+    }
+
+
+    suspend fun updateButton(templateId: String, oldButton: SoundButton, newButton: SoundButton){
+        buttonDao.updateButton(templateId, oldButton.gridPosition, newButton.name,
+            newButton.soundEffect.toString(), newButton.ttsText, newButton.color, newButton.iconRes)
     }
 }

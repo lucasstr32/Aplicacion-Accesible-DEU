@@ -31,8 +31,8 @@ class SoundManagerViewModel(): ViewModel() {
 
 
     fun playSound(context: Context, button: SoundButton) {
-        if (button.ttsText != null) {
-            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
+        if (button.ttsText != null && button.ttsText != "") {
+            Log.d("TTSManager", "Reproduciendo ${button.soundEffect} ${button.ttsText}")
 
 //            initTts(context)
 //            if (isTtsReady) {
