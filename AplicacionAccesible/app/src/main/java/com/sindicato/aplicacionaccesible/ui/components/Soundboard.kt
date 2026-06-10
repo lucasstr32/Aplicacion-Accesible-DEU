@@ -125,6 +125,7 @@ fun SoundGrid(
     var showDialogAtPosition by remember { mutableStateOf<Int?>(null) }
     var editingButton by remember { mutableStateOf<SoundButton?>(null) }
 
+    /* Add button */
     showDialogAtPosition?.let { position ->
         AddButtonDialog(
             onDismiss = { showDialogAtPosition = null },
@@ -145,6 +146,7 @@ fun SoundGrid(
         )
     }
 
+    /* Editing existent button */
     editingButton?.let { button ->
         AddButtonDialog(
             onDismiss = { editingButton = null },
@@ -298,14 +300,14 @@ fun AddButtonDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, SoundEffect?, String?, Long, Int) -> Unit,
     onDelete: () -> Unit,
-    initialButton: SoundButton?,
+    initialButton: SoundButton? ,
     soundManagerViewModel: SoundManagerViewModel
 ) {
 
     var expanded by remember { mutableStateOf(false) }
 
     var name by remember { mutableStateOf(initialButton?.name ?: "") }
-    var selectedEffect by remember { mutableStateOf(initialButton?.soundEffect) }
+    var selectedEffect by remember { mutableStateOf(SoundEffect.KISS) }
     var ttsText by remember { mutableStateOf(initialButton?.ttsText ?: "") }
     var selectedIconIndex by remember { mutableIntStateOf(initialButton?.iconRes ?: 0) }
     var selectedColor by remember {
@@ -497,15 +499,40 @@ fun AddButtonDialog(
                 }
             }
         },
-
         confirmButton = {
+            TextButton(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        val colorLong = selectedColor.toArgb().toLong()
 
-            TextButton(onClick = {
-                onConfirm(name, selectedEffect, ttsText, selectedColor.toArgb().toLong(), selectedIconIndex)
-            }) {
+                        if (selectedTabIndex == 0) {
+                            // TAB "Botón": We send the sound effect and explicitly set TTS to null
+                            onConfirm(
+                                name,
+                                selectedEffect,
+                                null,
+                                colorLong,
+                                selectedIconIndex
+                            )
+                        } else {
+                            // TAB "Voz": We send the TTS text and set the sound effect to null
+                            onConfirm(
+                                name,
+                                null,
+                                ttsText,
+                                colorLong,
+                                selectedIconIndex
+                            )
+                        }
+                        onDismiss()
+                    }
+                }
+            ) {
                 Text(if (initialButton == null) "Añadir" else "Guardar")
             }
         },
+
+
         dismissButton = {
             if (initialButton != null) {
                 IconButton(onClick = onDelete) {

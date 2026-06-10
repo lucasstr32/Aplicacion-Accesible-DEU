@@ -183,11 +183,22 @@ class SoundboardViewModel(
     ) {
 
         val currentTemplate = templates.getOrNull(currentTemplateIndex) ?: return
-        val updatedButton = button.copy(name = newName, soundEffect = newEffect, ttsText = newTts, color = newColor, iconRes = newIcon)
+        val updatedButton = button.copy(
+            name = newName,
+            soundEffect = newEffect,
+            ttsText = newTts,
+            color = newColor,
+            iconRes = newIcon)
 
         val updatedButtons = currentTemplate.buttons.map {
             if (it.gridPosition == button.gridPosition) {
-                it.copy(name = newName, soundEffect = newEffect, ttsText = newTts, color = newColor, iconRes = newIcon)
+                it.copy(
+                    name = newName,
+                    soundEffect = newEffect,
+                    ttsText = newTts,
+                    color = newColor,
+                    iconRes = newIcon
+                )
 
             } else it
         }
