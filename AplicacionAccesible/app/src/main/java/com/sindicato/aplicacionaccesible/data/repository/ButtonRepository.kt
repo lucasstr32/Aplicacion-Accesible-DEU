@@ -9,7 +9,7 @@ class ButtonRepository(
     private val buttonDao: ButtonDao
 
 ) {
-    suspend fun getButtonsByTemplateId(templateId: Int): List<SoundButton> {
+    suspend fun getButtonsByTemplateId(templateId: String): List<SoundButton> {
 
         val entities = buttonDao.getButtonsByTemplateId(templateId)
         return entities.map { entity ->
@@ -24,7 +24,7 @@ class ButtonRepository(
     }
 
 
-    suspend fun insertButton(templateId: Int, button: SoundButton){
+    suspend fun insertButton(templateId: String, button: SoundButton){
         val entity = ButtonEntity(
             templateId = templateId,
             name = button.name,
@@ -36,5 +36,11 @@ class ButtonRepository(
         )
         buttonDao.insertButton(entity)
 
+    }
+
+
+
+    suspend fun deleteButton(templateId: String, buttonName: String){
+        buttonDao.deleteButton(templateId, buttonName)
     }
 }

@@ -9,5 +9,11 @@ enum class SoundEffect(val id:Int, val displayName: String, val resourceId: Int)
     SCHOOL_BELL(4, "School Bell", R.raw.schoolbell),
     FF7_VICTORY(5, "FF7 Victory", R.raw.ff7_victory),
     POLICE_ALERT(6, "Police Alert", R.raw.alertapolicia),
-    TRICK_JUMP(7, "Trick Jump", R.raw.se_objsn_trickjump_ok),
+    TRICK_JUMP(7, "Trick Jump", R.raw.se_objsn_trickjump_ok);
+
+    companion object {
+        fun fromDisplayName(name: String?): SoundEffect {
+            return entries.find { it.displayName == name } ?: SoundEffect.POLICE_ALERT
+        }
+    }
 }

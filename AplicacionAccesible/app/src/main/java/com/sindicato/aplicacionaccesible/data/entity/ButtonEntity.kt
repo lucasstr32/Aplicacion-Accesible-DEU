@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
 )
 data class ButtonEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val templateId: Int,
+    val templateId: String,
     val name: String,
     val gridPosition: Int,
     val soundEffect: String,

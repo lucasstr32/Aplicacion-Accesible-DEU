@@ -18,7 +18,7 @@ class TemplateRepository(
             SoundButton(
                 name = entity.name,
                 gridPosition = entity.gridPosition,
-                soundEffect = SoundEffect.valueOf(entity.soundEffect.toString()), // Assuming you store the Enum name as String
+                soundEffect = SoundEffect.fromDisplayName(entity.name),
                 color = entity.color,
                 iconRes = entity.iconRes
             )
@@ -49,7 +49,7 @@ class TemplateRepository(
                     SoundButton(
                         name = btn.name,
                         gridPosition = btn.gridPosition,
-                        soundEffect = btn.soundEffect.let { SoundEffect.valueOf(it) },
+                        soundEffect = SoundEffect.fromDisplayName(btn.name),
                         ttsText = btn.ttsText,
                         color = btn.color,
                         iconRes = btn.iconRes

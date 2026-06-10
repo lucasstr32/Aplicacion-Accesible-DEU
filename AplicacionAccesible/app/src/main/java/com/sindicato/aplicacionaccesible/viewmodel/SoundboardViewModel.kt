@@ -127,6 +127,10 @@ class SoundboardViewModel(
                 SoundButton(name, position, soundEffect, ttsText, colorLong, iconRes)
 
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
+
+        viewModelScope.launch {
+            buttonRepository.insertButton(currentTemplate.id, SoundButton(name, position, soundEffect, ttsText, colorLong, iconRes))
+        }
     }
 
 //    fun playSound(context: Context, button: SoundButton) {
@@ -147,6 +151,12 @@ class SoundboardViewModel(
 //        }
 //    }
 
+    fun deleteButton(button: SoundButton) {
+        deleteButtonAtPosition(button.gridPosition)
+        viewModelScope.launch {
+            buttonRepository.deleteButton(currentTemplateIndex.toString(), button.name)
+        }
+    }
     fun deleteButtonAtPosition(position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position }

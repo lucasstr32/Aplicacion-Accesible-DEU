@@ -159,7 +159,7 @@ fun SoundGrid(
                         if (!soundboardViewModel.isEditMode) {
                             soundManagerViewModel.playSound(context, buttonAtPosition)
                         } else {
-                            soundboardViewModel.deleteButtonAtPosition(buttonAtPosition.gridPosition)
+                            soundboardViewModel.deleteButton(buttonAtPosition)
                         }
                     },
                     soundboardViewModel
