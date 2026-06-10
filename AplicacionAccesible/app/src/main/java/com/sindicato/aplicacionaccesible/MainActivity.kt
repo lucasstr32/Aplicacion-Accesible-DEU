@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarViewMonth
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Menu
@@ -165,7 +166,7 @@ fun MainScreen(
                             val nextCols = if (columnCount >= 4) 2 else columnCount + 1
                             soundboardViewModel.columnCount = nextCols
                         }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
+                            Icon(Icons.Default.CalendarViewMonth, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
                         }
                     }
                 }
