@@ -173,26 +173,6 @@ fun SoundGrid(
         items(totalCells) { index ->
             val buttonAtPosition = currentTemplate?.buttons?.find { it.gridPosition == index }
 
-            showDialogAtPosition?.let { position ->
-                AddButtonDialog(
-                    onDismiss = { showDialogAtPosition = null },
-                    onConfirm = { name, effect, tts, color, icon ->
-                        soundboardViewModel.addButtonToCurrentTemplate(
-                            name,
-                            effect,
-                            tts,
-                            color,
-                            icon,
-                            position
-                        )
-                        showDialogAtPosition = null
-                    },
-                    onDelete = {}, // Not needed for new buttons
-                    initialButton = null,
-                    soundManagerViewModel = soundManagerViewModel
-                )
-            }
-
             if (buttonAtPosition != null) {
                 SoundButtonItem(
                     button = buttonAtPosition,
@@ -307,11 +287,19 @@ fun AddButtonDialog(
     var expanded by remember { mutableStateOf(false) }
 
     var name by remember { mutableStateOf(initialButton?.name ?: "") }
-    var selectedEffect by remember { mutableStateOf(SoundEffect.KISS) }
+    var selectedEffect by remember { mutableStateOf(initialButton?.soundEffect ?: SoundEffect.KISS) }
     var ttsText by remember { mutableStateOf(initialButton?.ttsText ?: "") }
-    var selectedIconIndex by remember { mutableIntStateOf(initialButton?.iconRes ?: 0) }
+    var selectedIconIndex by remember {
+        mutableIntStateOf(
+            if (initialButton != null && initialButton.iconRes in availableIcons.indices) {
+                initialButton.iconRes
+            } else {
+                0
+            }
+        )
+    }
     var selectedColor by remember {
-        mutableStateOf(initialButton?.let { Color(it.color) } ?: buttonColors[0])
+        mutableStateOf(initialButton?.let { Color(it.color) } ?: SafeColors.firstOrNull() ?: Color.Gray)
     }
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -423,7 +411,7 @@ fun AddButtonDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(
-                            imageVector = availableIcons[selectedIconIndex],
+                            imageVector = availableIcons.getOrNull(selectedIconIndex) ?: Icons.Default.MusicNote,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
