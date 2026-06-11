@@ -1,6 +1,5 @@
 package com.sindicato.aplicacionaccesible.data.repository
 
-import android.widget.Button
 import com.sindicato.aplicacionaccesible.data.dao.ButtonDao
 import com.sindicato.aplicacionaccesible.data.entity.ButtonEntity
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
@@ -17,7 +16,7 @@ class ButtonRepository(
             SoundButton(
                 name = entity.name,
                 gridPosition = entity.gridPosition,
-                soundEffect = SoundEffect.valueOf(entity.soundEffect), // Assuming you store the Enum name as String
+                soundEffect = SoundEffect.fromDisplayName(entity.name),
                 color = entity.color,
                 iconRes = entity.iconRes
             )

@@ -22,4 +22,8 @@ interface TemplateDao {
 
     @Query("DELETE FROM templates WHERE id = :templateId")
     suspend fun deleteTemplateById(templateId: String)
+
+    @Query("SELECT COUNT(*) FROM templates")
+    suspend fun getTemplateCount(): Int
+
 }

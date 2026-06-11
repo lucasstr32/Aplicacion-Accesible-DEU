@@ -27,4 +27,8 @@ interface ButtonDao {
             "WHERE templateId = :templateId AND gridPosition = :gridPosition")
     suspend fun updateButton(templateId: String, gridPosition: Int, newName: String,
                              newEffect: String, newTtsText: String?, newColor: Long, newIcon: Int)
+
+
+    @Insert
+    suspend fun insertButtonsList(buttons: List<ButtonEntity>)
 }

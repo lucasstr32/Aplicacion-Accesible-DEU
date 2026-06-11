@@ -65,8 +65,10 @@ class MainActivity : ComponentActivity() {
 
         // Seed the database
         val signLanguageDao = AppDatabase.getDatabase(this).signLanguageDao()
+        val templateDao = AppDatabase.getDatabase(this).templateDao()
+        val buttonDao = AppDatabase.getDatabase(this).buttonDao()
         lifecycleScope.launch {
-            DatabaseSeeder.seedDatabase(signLanguageDao)
+            DatabaseSeeder.seedDatabase(signLanguageDao, templateDao, buttonDao)
         }
 
         val database = AppDatabase.getDatabase(this)
