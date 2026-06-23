@@ -1,6 +1,7 @@
 package com.sindicato.aplicacionaccesible.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -9,12 +10,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.sindicato.aplicacionaccesible.ui.sound.AppLanguage
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
@@ -97,32 +101,48 @@ fun SettingsDialog(
                     }
 
                     // SECCIÓN 2: Idioma
-                    Column {
-                        Text("Idioma", style = MaterialTheme.typography.titleLarge)
-                        Spacer(Modifier.height(8.dp))
-                        var languageExpanded by remember { mutableStateOf(false) }
-                        Box {
-                            OutlinedButton(
-                                onClick = { languageExpanded = true },
-                                modifier = Modifier.fillMaxWidth()
+                    val selectedLanguage by soundManagerViewModel.selectedLanguage.collectAsState()
+                    var expanded by remember { mutableStateOf(false) }
+
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)) {
+                        OutlinedCard(
+                            onClick = { expanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(soundManagerViewModel.getSpeechLanguage())
+                                Text(
+                                    text = "Idioma: ${selectedLanguage.displayName}", // Same text logic
+                                    modifier = Modifier.weight(1f)
+                                )
                                 Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                             }
-                            DropdownMenu(
-                                expanded = languageExpanded,
-                                onDismissRequest = { languageExpanded = false },
-                                modifier = Modifier.fillMaxWidth(0.9f)
-                            ) {
-                                listOf("Español", "Inglés").forEach { language ->
-                                    DropdownMenuItem(
-                                        text = { Text(language) },
-                                        onClick = {
-                                            soundManagerViewModel.updateSpeechLanguage(language)
-                                            languageExpanded = false
+                        }
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.fillMaxWidth(0.9f)
+                        ) {
+                            // SCALABLE: Just iterate through the Enum
+                            AppLanguage.entries.forEach { language ->
+                                DropdownMenuItem(
+                                    text = { Text(language.displayName) },
+                                    onClick = {
+                                        soundManagerViewModel.updateLanguage(language)
+                                        expanded = false
+                                    },
+                                    // Visual feedback for selection
+                                    trailingIcon = {
+                                        if (language == selectedLanguage) {
+                                            Icon(Icons.Default.Check, null)
                                         }
-                                    )
-                                }
+                                    }
+                                )
                             }
                         }
                     }

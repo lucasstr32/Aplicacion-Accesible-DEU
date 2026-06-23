@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
+import com.sindicato.aplicacionaccesible.ui.sound.AppLanguage
 import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,8 @@ class SoundManagerViewModel(): ViewModel() {
     private val _ttsSpeechRate = MutableStateFlow(1.0f)
     val ttsSpeechRate: StateFlow<Float> = _ttsSpeechRate.asStateFlow()
 
+    private val _selectedLanguage = MutableStateFlow(AppLanguage.SPANISH)
+    val selectedLanguage = _selectedLanguage.asStateFlow()
 
 
     fun playSound(context: Context, button: SoundButton) {
@@ -65,14 +68,15 @@ class SoundManagerViewModel(): ViewModel() {
     }
 
 
-    fun updateSpeechLanguage(language: String) {
-        val locale = if (language == "Español") Locale("es", "ES") else Locale.ENGLISH
-        TTSManager.language = locale
+    fun updateLanguage(language: AppLanguage) {
+        _selectedLanguage.value = language
+        // Apply directly to the audio engine
+        TTSManager.applyLanguage(language)
     }
 
-    fun getSpeechLanguage(): String {
-        return TTSManager.language.toString()
-    }
+//    fun getSpeechLanguage(): String {
+//        return TTSManager.language.toString()
+//    }
 
     fun setSpeechRate(speed: Float){
         TTSManager.setSpeechRate(speed)

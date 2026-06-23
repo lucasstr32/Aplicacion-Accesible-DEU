@@ -19,17 +19,10 @@ object TTSManager {
 
     private var isInitialized = false
     private var tts: TextToSpeech? = null
-    var language = Locale("es", "ES")
-    private var speechRate = 1.0f
-    private var pitch = 1.0f
+    private var currentLanguage: AppLanguage = AppLanguage.SPANISH
 
 
     val ttsText: String = ""
-    var ttsStatus: TtsStatus = TtsStatus.IDLE
-    var sttText: String = ""
-    var sttStatus: SttStatus = SttStatus.IDLE
-    var errorMessage: String? = null
-    var savedPhrases: List<PhraseEntity> = emptyList()
 
 
     fun init(context: Context) {
@@ -37,12 +30,6 @@ object TTSManager {
         if(isInitialized) return
 
         setupTts(context)
-
-        isInitialized = true
-        tts?.setPitch(1.0f)
-        tts?.setSpeechRate(1.0f)
-        Log.d("TTSManager", "TTS Inicializado. Estado: ${tts?.voice}")
-
     }
 
 
@@ -50,26 +37,21 @@ object TTSManager {
     private fun setupTts(context: Context) {
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.getDefault()
-//                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-//
-//
-//                    @Deprecated("Deprecated in Java")
-//                    override fun onError(utteranceId: String?) {
-//                        ttsStatus = TtsStatus.ERROR
-//                    }
-//
-//                    override fun onError(utteranceId: String?, errorCode: Int) {
-//                        ttsStatus = TtsStatus.ERROR
-//                    }
-//                })
-//                    ttsStatus = TtsStatus.IDLE
-//            } else {
-//                ttsStatus = TtsStatus.ERROR
+                isInitialized = true
+                tts?.setPitch(1.0f)
+                tts?.setSpeechRate(1.0f)
+                applyLanguage(currentLanguage)
             }
         }
     }
 
+    fun applyLanguage(language: AppLanguage) {
+        currentLanguage = language
+        val result = tts?.setLanguage(language.locale)
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+            Log.e("TTSManager", "Language ${language.displayName} not supported")
+        }
+    }
 
 
     fun speak(text: String) {
