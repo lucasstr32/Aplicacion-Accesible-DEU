@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.data.AppDatabase
@@ -54,6 +58,7 @@ class MainActivity : ComponentActivity() {
 
 
 
+
     @SuppressLint("ViewModelConstructorInComposable")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,11 +84,20 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            val soundboardViewModel = SoundboardViewModel(templateRepository, buttonRepository)
+
+            val soundboardViewModel: SoundboardViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return SoundboardViewModel(templateRepository, buttonRepository) as T
+                    }
+                }
+            )
             val soundManagerViewModel = SoundManagerViewModel()
             val comunicacionViewModel = ComunicacionViewModel(this)
 
-            AplicacionAccesibleTheme(appTheme = soundboardViewModel.appTheme) {
+            val currentTheme by soundboardViewModel.appTheme.collectAsState()
+
+            AplicacionAccesibleTheme(appTheme = currentTheme) {
                 MainScreen(
                     soundboardViewModel = soundboardViewModel,
                     soundManagerViewModel = soundManagerViewModel,
@@ -97,6 +111,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         SoundEffectManager.release()
     }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -210,12 +225,14 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+        Box(modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()) {
             when (selectedTab) {
                 0 -> Soundboard(
                     soundboardViewModel,
                     soundManagerViewModel,
-                    soundboardViewModel.appTheme == AppTheme.COLORBLIND,
+                    soundboardViewModel.appTheme.value == AppTheme.COLORBLIND,
                 )
                 1 -> ComunicacionScreen(
                     comunicacionViewModel,

@@ -27,6 +27,7 @@ fun SettingsDialog(
 ) {
     val currentPitch by soundManagerViewModel.ttsPitch.collectAsState()
     val currentSpeechRate by soundManagerViewModel.ttsSpeechRate.collectAsState()
+    val currentTheme by soundboardViewModel.appTheme.collectAsState()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -74,22 +75,22 @@ fun SettingsDialog(
                             ThemeButton(
                                 text = "Claro",
                                 icon = Icons.Default.LightMode,
-                                isSelected = soundboardViewModel.appTheme == AppTheme.LIGHT,
-                                onClick = { soundboardViewModel.appTheme = AppTheme.LIGHT },
+                                isSelected = currentTheme == AppTheme.LIGHT,
+                                onClick = { soundboardViewModel.setAppTheme(AppTheme.LIGHT) },
                                 modifier = Modifier.weight(1f)
                             )
                             ThemeButton(
                                 text = "Oscuro",
                                 icon = Icons.Default.DarkMode,
-                                isSelected = soundboardViewModel.appTheme == AppTheme.DARK,
-                                onClick = { soundboardViewModel.appTheme = AppTheme.DARK },
+                                isSelected = currentTheme == AppTheme.DARK,
+                                onClick = { soundboardViewModel.setAppTheme(AppTheme.DARK) },
                                 modifier = Modifier.weight(1f)
                             )
                             ThemeButton(
                                 text = "Daltónico",
                                 icon = Icons.Default.Contrast,
-                                isSelected = soundboardViewModel.appTheme == AppTheme.COLORBLIND,
-                                onClick = { soundboardViewModel.appTheme = AppTheme.COLORBLIND },
+                                isSelected = currentTheme == AppTheme.COLORBLIND,
+                                onClick = { soundboardViewModel.setAppTheme(AppTheme.COLORBLIND) },
                                 modifier = Modifier.weight(1f)
                             )
                         }

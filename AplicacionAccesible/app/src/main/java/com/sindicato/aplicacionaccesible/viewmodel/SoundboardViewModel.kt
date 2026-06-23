@@ -17,6 +17,9 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SoundboardViewModel(
@@ -31,7 +34,7 @@ class SoundboardViewModel(
     var columnCount by mutableIntStateOf(2)
 
     // Configuración de la aplicación (Global)
-    var appTheme by mutableStateOf(AppTheme.LIGHT)
+    //var appTheme by mutableStateOf(AppTheme.LIGHT)
 //    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
 //    var ttsPitch by mutableFloatStateOf(1.0f)
 //    var ttsSpeed by mutableFloatStateOf(1.0f)
@@ -40,6 +43,8 @@ class SoundboardViewModel(
 //    //private var tts: TextToSpeech? = null
 //    private var isTtsReady = false
 
+    private val _appTheme = MutableStateFlow(AppTheme.LIGHT)
+    val appTheme: StateFlow<AppTheme> = _appTheme.asStateFlow()
 
 
 
@@ -211,6 +216,12 @@ class SoundboardViewModel(
         }
 
     }
+
+    fun setAppTheme(newTheme: AppTheme) {
+
+        _appTheme.value = newTheme
+    }
+
 
 
 
