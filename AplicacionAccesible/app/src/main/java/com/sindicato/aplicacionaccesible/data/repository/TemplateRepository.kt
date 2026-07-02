@@ -5,6 +5,8 @@ import com.sindicato.aplicacionaccesible.data.entity.TemplateEntity
 import com.sindicato.aplicacionaccesible.data.pojo.TemplateWithButtons
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.TTSButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.Template
 
 class TemplateRepository(
@@ -15,13 +17,29 @@ class TemplateRepository(
         val relation: TemplateWithButtons = templateDao.getTemplateById(templateId) ?: return null
 
         val uiButtons = relation.buttons.map { entity ->
-            SoundButton(
-                name = entity.name,
-                gridPosition = entity.gridPosition,
-                soundEffect = SoundEffect.fromDisplayName(entity.name),
-                color = entity.color,
-                iconRes = entity.iconRes
-            )
+            if(entity.soundEffect.isNullOrEmpty() && !entity.ttsText.isNullOrEmpty()){
+                TTSButton(
+                    name = entity.name,
+                    gridPosition = entity.gridPosition,
+                    ttsText = entity.ttsText,
+                    color = entity.color,
+                    iconRes = entity.iconRes
+                )
+            }
+            else {
+                val effect: String = try {
+                    SoundEffect.valueOf(entity.soundEffect ?: "KISS").name
+                } catch (e: Exception) {
+                    SoundEffect.FF7_VICTORY.name
+                }
+                SoundEffectButton(
+                    name = entity.name,
+                    gridPosition = entity.gridPosition,
+                    soundEffect = SoundEffect.valueOf(effect),
+                    color = entity.color,
+                    iconRes = entity.iconRes
+                )
+            }
         }
 
         return Template(
@@ -46,14 +64,29 @@ class TemplateRepository(
                 id = relation.template.id.toString(), // Ensure ID is mapped
                 name = relation.template.name,
                 buttons = relation.buttons.map { btn ->
-                    SoundButton(
-                        name = btn.name,
-                        gridPosition = btn.gridPosition,
-                        soundEffect = SoundEffect.fromDisplayName(btn.name),
-                        ttsText = btn.ttsText,
-                        color = btn.color,
-                        iconRes = btn.iconRes
-                    )
+                    if(btn.soundEffect.isNullOrEmpty() && !btn.ttsText.isNullOrEmpty()){
+                        TTSButton(
+                            name = btn.name,
+                            gridPosition = btn.gridPosition,
+                            ttsText = btn.ttsText,
+                            color = btn.color,
+                            iconRes = btn.iconRes
+                        )
+                    }
+                    else {
+                        val effect: String = try {
+                            SoundEffect.valueOf(btn.soundEffect ?: "KISS").name
+                        } catch (e: Exception) {
+                            SoundEffect.FF7_VICTORY.name
+                        }
+                        SoundEffectButton(
+                            name = btn.name,
+                            gridPosition = btn.gridPosition,
+                            soundEffect = SoundEffect.valueOf(effect),
+                            color = btn.color,
+                            iconRes = btn.iconRes
+                        )
+                    }
                 }
             )
         }

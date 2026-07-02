@@ -20,7 +20,7 @@ data class ButtonEntity(
     val templateId: String,
     val name: String,
     val gridPosition: Int,
-    val soundEffect: String?,
+    val soundEffect: String? = null,
     val ttsText: String? = null,
     val color: Long,
     val iconRes: Int

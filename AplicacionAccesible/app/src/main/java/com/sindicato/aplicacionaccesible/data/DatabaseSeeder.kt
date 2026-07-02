@@ -5,6 +5,7 @@ import com.sindicato.aplicacionaccesible.data.dao.ButtonDao
 import com.sindicato.aplicacionaccesible.data.dao.TemplateDao
 import com.sindicato.aplicacionaccesible.data.entity.ButtonEntity
 import com.sindicato.aplicacionaccesible.data.entity.TemplateEntity
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -57,7 +58,7 @@ object DatabaseSeeder {
                         templateId = basicTemplate.id,
                         name = "Aplauso",
                         gridPosition = 1,
-                        soundEffect = "CLAP", // Usará sonido físico
+                        soundEffect = SoundEffect.CLAPPING.name, // Usará sonido físico
                         ttsText = null,
                         color = 0xFF0072B2, // SafeBlue
                         iconRes = 0 // Music
@@ -85,7 +86,7 @@ object DatabaseSeeder {
                         templateId = emergencyTemplate.id,
                         name = "Alarma",
                         gridPosition = 1,
-                        soundEffect = "BOMB",
+                        soundEffect = SoundEffect.POLICE_ALERT.name,
                         ttsText = null,
                         color = 0xFFE69F00, // SafeOrange
                         iconRes = 1 // Notifications

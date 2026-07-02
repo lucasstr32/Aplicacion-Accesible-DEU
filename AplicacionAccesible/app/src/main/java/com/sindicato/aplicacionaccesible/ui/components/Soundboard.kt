@@ -74,6 +74,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.TTSButton
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.theme.SafeColors
 import com.sindicato.aplicacionaccesible.ui.theme.getContrastColor
@@ -129,38 +131,44 @@ fun SoundGrid(
     showDialogAtPosition?.let { position ->
         AddButtonDialog(
             onDismiss = { showDialogAtPosition = null },
-            onConfirm = { name, effect, tts, selectedColor, selectedIcon ->
-                soundboardViewModel.addButtonToCurrentTemplate(
-                    name,
-                    effect,
-                    tts,
-                    selectedColor,
-                    selectedIcon,
-                    position
-                )
+            onConfirm = { name, effect, tts, selectedColor, selectedIcon, tabIndex ->
+                // Use tabIndex to decide which specific VM function to call
+                if (tabIndex == 0 && effect != null) {
+                    soundboardViewModel.addSoundEffectButtonToCurrentTemplate(
+                        name, effect, selectedColor, selectedIcon, position
+                    )
+                } else if (tabIndex == 1 && tts != null) {
+                    soundboardViewModel.addTTSButtonToCurrentTemplate(
+                        name, tts, selectedColor, selectedIcon, position
+                    )
+                }
                 showDialogAtPosition = null
             },
             onDelete = {},
             initialButton = null,
-            soundManagerViewModel
+            soundManagerViewModel = soundManagerViewModel
         )
     }
 
     /* Editing existent button */
-    editingButton?.let { button ->
-        AddButtonDialog(
-            onDismiss = { editingButton = null },
-            onConfirm = { name, effect, tts, color, icon ->
-                soundboardViewModel.updateButton(button, name, effect, tts, color, icon)
-                editingButton = null
-            },
-            onDelete = {
-                soundboardViewModel.deleteButtonAtPosition(button.gridPosition)
-                editingButton = null
-            },
-            initialButton = button,
-            soundManagerViewModel = soundManagerViewModel
-        )
+    editingButton?.let { button ->        AddButtonDialog(
+        onDismiss = { editingButton = null },
+        onConfirm = { name, effect, tts, color, icon, tabIndex ->
+            // Decide which update function to call based on the tab
+            if (tabIndex == 0 && effect != null) {
+                soundboardViewModel.updateSoundEffectButton(button, name, effect, color, icon)
+            } else if (tabIndex == 1 && tts != null) {
+                soundboardViewModel.updateTTSButton(button, name, tts, color, icon)
+            }
+            editingButton = null
+        },
+        onDelete = {
+            soundboardViewModel.deleteButtonAtPosition(button.gridPosition)
+            editingButton = null
+        },
+        initialButton = button,
+        soundManagerViewModel = soundManagerViewModel
+    )
     }
 
     LazyVerticalGrid(
@@ -254,7 +262,7 @@ fun AddButtonDialogPreview() {
     AddButtonDialog(
 
         onDismiss = { /* Do nothing */ },
-        onConfirm = { name, effect, tts, color, iconRes -> println("Preview: $name with $effect or $tts")},
+        onConfirm = { name, effect, tts, color, iconRes, tabIndex -> println("Preview: $name with $effect or $tts")},
         onDelete = {},
         initialButton = null,
         soundManagerViewModel = soundManagerViewModel
@@ -278,7 +286,7 @@ val availableIcons = listOf(
 @Composable
 fun AddButtonDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, SoundEffect?, String?, Long, Int) -> Unit,
+    onConfirm: (String, SoundEffect?, String?, Long, Int, Int) -> Unit,
     onDelete: () -> Unit,
     initialButton: SoundButton? ,
     soundManagerViewModel: SoundManagerViewModel
@@ -287,8 +295,13 @@ fun AddButtonDialog(
     var expanded by remember { mutableStateOf(false) }
 
     var name by remember { mutableStateOf(initialButton?.name ?: "") }
-    var selectedEffect by remember { mutableStateOf(initialButton?.soundEffect ?: SoundEffect.KISS) }
-    var ttsText by remember { mutableStateOf(initialButton?.ttsText ?: "") }
+
+    var selectedEffect by remember {
+        mutableStateOf((initialButton as? SoundEffectButton)?.soundEffect ?: SoundEffect.KISS)
+    }
+    var ttsText by remember {
+        mutableStateOf((initialButton as? TTSButton)?.ttsText ?: "")
+    }
     var selectedIconIndex by remember {
         mutableIntStateOf(
             if (initialButton != null && initialButton.iconRes in availableIcons.indices) {
@@ -500,7 +513,8 @@ fun AddButtonDialog(
                                 selectedEffect,
                                 null,
                                 colorLong,
-                                selectedIconIndex
+                                selectedIconIndex,
+                                selectedTabIndex
                             )
                         } else {
                             // TAB "Voz": We send the TTS text and set the sound effect to null
@@ -509,7 +523,8 @@ fun AddButtonDialog(
                                 null,
                                 ttsText,
                                 colorLong,
-                                selectedIconIndex
+                                selectedIconIndex,
+                                selectedTabIndex
                             )
                         }
                         onDismiss()

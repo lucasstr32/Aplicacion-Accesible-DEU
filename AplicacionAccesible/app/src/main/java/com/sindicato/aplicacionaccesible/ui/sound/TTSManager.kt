@@ -45,7 +45,7 @@ object TTSManager {
     }
 
 
-    fun speak(text: String?) {
+    fun speak(text: String) {
         Log.d("TTSManager", "Texto a reproducir: $text")
         if (text.isNotBlank()) {
             tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_id")

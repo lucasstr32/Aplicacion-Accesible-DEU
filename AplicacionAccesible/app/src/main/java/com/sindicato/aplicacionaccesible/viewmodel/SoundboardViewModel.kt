@@ -17,6 +17,8 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
+import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.TTSButton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -118,23 +120,47 @@ class SoundboardViewModel(
         isEditMode = !isEditMode
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun addButtonToCurrentTemplate(
+    fun addTTSButtonToCurrentTemplate(
         name: String,
-        soundEffect: SoundEffect?,
-        ttsText: String?,
+        ttsText: String,colorLong: Long,
+        iconRes: Int,
+        position: Int
+    ) {
+        val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
+        val newButton = TTSButton(
+            name = name,
+            gridPosition = position,
+            ttsText = ttsText,
+            color = colorLong,
+            iconRes = iconRes
+        )
+        saveButton(currentTemplate, newButton, position)
+    }
+
+    fun addSoundEffectButtonToCurrentTemplate(
+        name: String,
+        soundEffect: SoundEffect,
         colorLong: Long,
         iconRes: Int,
         position: Int
     ) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
-        val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position } +
-                SoundButton(name, position, soundEffect, ttsText, colorLong, iconRes)
+        val newButton = SoundEffectButton(
+            name = name,
+            gridPosition = position,
+            soundEffect = soundEffect,
+            color = colorLong,
+            iconRes = iconRes
+        )
+        saveButton(currentTemplate, newButton, position)
+    }
 
-        _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
-
+    // Helper to avoid code duplication
+    private fun saveButton(template: Template, button: SoundButton, position: Int) {
+        val updatedButtons = template.buttons.filter { it.gridPosition != position } + button
+        _templates[currentTemplateIndex] = template.copy(buttons = updatedButtons)
         viewModelScope.launch {
-            buttonRepository.insertButton(currentTemplate.id, SoundButton(name, position, soundEffect, ttsText, colorLong, iconRes))
+            buttonRepository.insertButton(template.id, button)
         }
     }
 
@@ -178,43 +204,66 @@ class SoundboardViewModel(
 //    }
 
 
-    fun updateButton(
+    fun updateTTSButton(
         button: SoundButton,
         newName: String,
-        newEffect: SoundEffect?,
-        newTts: String?,
+        newTts: String,
         newColor: Long,
         newIcon: Int
     ) {
+        val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
 
-        val currentTemplate = templates.getOrNull(currentTemplateIndex) ?: return
-        val updatedButton = button.copy(
+        // Create a new TTSButton instance with updated values
+        val updatedButton = TTSButton(
             name = newName,
-            soundEffect = newEffect,
+            gridPosition = button.gridPosition,
             ttsText = newTts,
             color = newColor,
-            iconRes = newIcon)
+            iconRes = newIcon
+        )
 
+        // Update the list state
         val updatedButtons = currentTemplate.buttons.map {
-            if (it.gridPosition == button.gridPosition) {
-                it.copy(
-                    name = newName,
-                    soundEffect = newEffect,
-                    ttsText = newTts,
-                    color = newColor,
-                    iconRes = newIcon
-                )
-
-            } else it
+            if (it.gridPosition == button.gridPosition) updatedButton else it
         }
 
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
 
-        viewModelScope.launch{
-            buttonRepository.updateButton(currentTemplate.id,
-                button, updatedButton)
+        // Persist to DB
+        viewModelScope.launch {
+            buttonRepository.updateButton(currentTemplate.id, button.gridPosition, updatedButton)
+        }
+    }
+
+    fun updateSoundEffectButton(
+        button: SoundButton,
+        newName: String,
+        newEffect: SoundEffect,
+        newColor: Long,
+        newIcon: Int
+    ) {
+        val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
+
+        // Create a new SoundEffectButton instance with updated values
+        val updatedButton = SoundEffectButton(
+            name = newName,
+            gridPosition = button.gridPosition,
+            soundEffect = newEffect,
+            color = newColor,
+            iconRes = newIcon
+        )
+
+        // Update the list state
+        val updatedButtons = currentTemplate.buttons.map {
+            if (it.gridPosition == button.gridPosition) updatedButton else it
         }
 
+        _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
+
+        // Persist to DB
+        viewModelScope.launch {
+            buttonRepository.updateButton(currentTemplate.id, button.gridPosition, updatedButton)
+        }
     }
 
     fun setAppTheme(newTheme: AppTheme) {
@@ -232,3 +281,4 @@ class SoundboardViewModel(
 //        tts?.shutdown()
 //    }
 }
+

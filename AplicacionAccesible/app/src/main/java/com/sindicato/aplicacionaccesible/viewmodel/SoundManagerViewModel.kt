@@ -38,14 +38,14 @@ class SoundManagerViewModel(): ViewModel() {
         when (button) {
             is TTSButton -> {
                 // Smart cast to TTSButton: access ttsText safely
-                if (button.ttsText?.isNotBlank() == true) {
+                if (button.ttsText.isNotBlank()) {
                     Log.d("SoundManager", "Playing TTS: ${button.ttsText}")
                     TTSManager.speak(button.ttsText)
                 }
             }
             is SoundEffectButton -> {
                 // Smart cast to SoundEffectButton: access soundEffect safely
-                Log.d("SoundManager", "Playing Sound Effect: ${button.soundEffect?.name}")
+                Log.d("SoundManager", "Playing Sound Effect: ${button.soundEffect.name}")
                 stopAndReleasePlayer()
                 mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
                 mediaPlayer?.start()
