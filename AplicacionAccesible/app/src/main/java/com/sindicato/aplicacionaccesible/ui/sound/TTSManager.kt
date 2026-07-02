@@ -1,17 +1,8 @@
 package com.sindicato.aplicacionaccesible.ui.sound
 
 import android.content.Context
-import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import androidx.lifecycle.viewModelScope
-import com.sindicato.aplicacionaccesible.data.PhraseEntity
-import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionMode
-import com.sindicato.aplicacionaccesible.ui.comunicacion.SttStatus
-import com.sindicato.aplicacionaccesible.ui.comunicacion.TtsStatus
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.util.Locale
 
 
@@ -54,7 +45,7 @@ object TTSManager {
     }
 
 
-    fun speak(text: String) {
+    fun speak(text: String?) {
         Log.d("TTSManager", "Texto a reproducir: $text")
         if (text.isNotBlank()) {
             tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_id")

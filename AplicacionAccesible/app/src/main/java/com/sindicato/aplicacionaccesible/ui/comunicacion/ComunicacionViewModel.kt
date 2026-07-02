@@ -1,15 +1,11 @@
 package com.sindicato.aplicacionaccesible.ui.comunicacion
 
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.AppDatabase
