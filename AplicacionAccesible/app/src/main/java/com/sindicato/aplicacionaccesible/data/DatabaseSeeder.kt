@@ -37,59 +37,103 @@ object DatabaseSeeder {
                 signLanguageDao.insertAll(initialData)
             }
             if (templateDao.getTemplateCount() == 0) {
-                // Crear primera plantilla: "Básico"
-                val basicTemplate = TemplateEntity(
-                    name = "Básico",
+                val afueraTemplate = TemplateEntity(
+                    name = "Afuera",
                     id = UUID.randomUUID().toString()
                 )
-                templateDao.insertTemplate(basicTemplate)
+                templateDao.insertTemplate(afueraTemplate)
 
                 val basicButtons = listOf(
                     ButtonEntity(
-                        templateId = basicTemplate.id,
-                        name = "Hola",
+                        templateId = afueraTemplate.id,
+                        name = "Permiso",
                         gridPosition = 0,
                         soundEffect = null, // Usará TTS
-                        ttsText = "Hola, ¿cómo estás?",
+                        ttsText = "Permiso",
                         color = 0xFF009E73, // SafeGreen
                         iconRes = 5 // Face
                     ),
                     ButtonEntity(
-                        templateId = basicTemplate.id,
-                        name = "Aplauso",
+                        templateId = afueraTemplate.id,
+                        name = "Ouch",
                         gridPosition = 1,
-                        soundEffect = SoundEffect.CLAPPING.name, // Usará sonido físico
+                        soundEffect = SoundEffect.MALE_OUCH.name, // Usará sonido físico
                         ttsText = null,
                         color = 0xFF0072B2, // SafeBlue
                         iconRes = 0 // Music
+                    ),
+                    ButtonEntity(
+                        templateId = afueraTemplate.id,
+                        name = "Si",
+                        gridPosition = 2,
+                        soundEffect = null,
+                        ttsText = "Si",
+                        color = 0xFF009E73, // SafeGreen
+                        iconRes = 0 // Music
+                    ),
+                    ButtonEntity(
+                        templateId = afueraTemplate.id,
+                        name = "No",
+                        gridPosition = 3,
+                        soundEffect = null,
+                        ttsText = "No",
+                        color = 0xFF009E73, // SafeGreen
+                        iconRes = 0
+                    ),
+                    ButtonEntity(
+                        templateId = afueraTemplate.id,
+                        name = "Gracias",
+                        gridPosition = 4,
+                        soundEffect = null,
+                        ttsText = "Gracias",
+                        color = 0xFF009E73, // SafeGreen
+                        iconRes = 0
                     )
                 )
 
                 // Crear segunda plantilla: "Emergencia"
-                val emergencyTemplate = TemplateEntity(
-                    name = "Emergencia",
+                val facultadTemplate = TemplateEntity(
+                    name = "Facultad",
                     id = UUID.randomUUID().toString()
                 )
-                templateDao.insertTemplate(emergencyTemplate)
+                templateDao.insertTemplate(facultadTemplate)
 
                 val emergencyButtons = listOf(
                     ButtonEntity(
-                        templateId = emergencyTemplate.id,
-                        name = "Ayuda",
+                        templateId = facultadTemplate.id,
+                        name = "No entendi",
                         gridPosition = 0,
                         soundEffect = null,
-                        ttsText = "Necesito ayuda, por favor",
+                        ttsText = "No entendí, ¿Podrías repetir?",
                         color = 0xFFD55E00, // SafeRed
                         iconRes = 4 // Warning
                     ),
                     ButtonEntity(
-                        templateId = emergencyTemplate.id,
-                        name = "Alarma",
+                        templateId = facultadTemplate.id,
+                        name = "Necesito ayuda",
                         gridPosition = 1,
-                        soundEffect = SoundEffect.POLICE_ALERT.name,
-                        ttsText = null,
+                        soundEffect = null,
+                        ttsText = "Necesito ayuda",
                         color = 0xFFE69F00, // SafeOrange
                         iconRes = 1 // Notifications
+                    ),
+                    ButtonEntity(
+                        templateId = facultadTemplate.id,
+                        name = "¿Puedo ir al baño?",
+                        gridPosition = 2,
+                        soundEffect = null,
+                        ttsText = "¿Puedo ir al baño?",
+                        color = 0xFFE69F00, // SafeOrange
+                        iconRes = 0 // Music
+                    ),
+                    ButtonEntity(
+                        templateId = facultadTemplate.id,
+                        name = "Pensando",
+                        gridPosition = 3,
+                        soundEffect = SoundEffect.MALE_THINKING.name,
+                        ttsText = null,
+                        color = 0xFF009E73, // SafeGreen
+                        iconRes = 0 // Music
                     )
                 )
 

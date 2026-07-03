@@ -45,6 +45,7 @@ import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.ui.theme.AplicacionAccesibleTheme
 import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState
 
 class MainActivity : ComponentActivity() {
 
@@ -232,7 +233,7 @@ fun MainScreen(
                 0 -> Soundboard(
                     soundboardViewModel,
                     soundManagerViewModel,
-                    soundboardViewModel.appTheme.value == AppTheme.COLORBLIND,
+                    soundboardViewModel.appTheme.collectAsState().value == AppTheme.COLORBLIND,
                 )
                 1 -> ComunicacionScreen(
                     comunicacionViewModel,

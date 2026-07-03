@@ -318,6 +318,7 @@ fun AddButtonDialog(
     var selectedTabIndex by remember {
         mutableIntStateOf(if (initialButton is TTSButton) 1 else 0)
     }
+
     val tabs = listOf("Botón", "Voz")
 
     var iconExpanded by remember { mutableStateOf(false) } // State for icon dropdown
