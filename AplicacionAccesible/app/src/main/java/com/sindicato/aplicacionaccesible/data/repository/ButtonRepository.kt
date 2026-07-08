@@ -32,7 +32,7 @@ class ButtonRepository(
                 val effect: String = try {
                     SoundEffect.valueOf(entity.soundEffect ?: "KISS").name
                 } catch (e: Exception) {
-                    SoundEffect.FF7_VICTORY.name
+                    SoundEffect.AWW.name
                 }
                 SoundEffectButton(
                     name = entity.name,

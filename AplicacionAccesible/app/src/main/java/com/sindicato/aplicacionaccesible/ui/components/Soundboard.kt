@@ -27,15 +27,34 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Handshake
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Hotel
+import androidx.compose.material.icons.filled.LocalDrink
+import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RemoveCircle
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
+import androidx.compose.material.icons.filled.SentimentVerySatisfied
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Wc
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -170,35 +189,68 @@ fun SoundGrid(
         soundManagerViewModel = soundManagerViewModel
     )
     }
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(soundboardViewModel.columnCount),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(totalCells) { index ->
+                val buttonAtPosition = currentTemplate?.buttons?.find { it.gridPosition == index }
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(soundboardViewModel.columnCount),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(totalCells) { index ->
-            val buttonAtPosition = currentTemplate?.buttons?.find { it.gridPosition == index }
+                if (buttonAtPosition != null) {
+                    SoundButtonItem(
+                        button = buttonAtPosition,
+                        isColorblindMode = isColorblindMode,
+                        onLongClick = {
+                            if (soundboardViewModel.isEditMode) {
+                                editingButton = buttonAtPosition
+                            }
+                        },
+                        onClick = {
+                            if (!soundboardViewModel.isEditMode) {
+                                soundManagerViewModel.playSound(context, buttonAtPosition)
+                            }
+                        },
+                        soundboardViewModel = soundboardViewModel
+                    )
+                } else if (soundboardViewModel.isEditMode) {
+                    EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
+                }
+            }
+        }
 
-            if (buttonAtPosition != null) {
-                SoundButtonItem(
-                    button = buttonAtPosition,
-                    isColorblindMode = isColorblindMode,
-                    onLongClick = {
-                        if (soundboardViewModel.isEditMode) {
-                            editingButton = buttonAtPosition
-                        }
-                    },
-                    onClick = {
-                        if (!soundboardViewModel.isEditMode) {
-                            soundManagerViewModel.playSound(context, buttonAtPosition)
-                        }
-                    },
-                    soundboardViewModel = soundboardViewModel
-                )
-            } else if (soundboardViewModel.isEditMode) {
-                EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
+        // Mensaje flotante
+        if (soundboardViewModel.isEditMode) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Mantén presionado un botón para modificarlo",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
         }
     }
@@ -276,10 +328,37 @@ val buttonColors = listOf(
     Color(0xFFFFCA28), Color(0xFFAB47BC), Color(0xFF26A69A)
 )
 
-// Define a list of selectable icons
+// Updated availableIcons list for non-verbal communication
 val availableIcons = listOf(
-    Icons.Default.MusicNote, Icons.Default.Notifications,
-    Icons.Default.Favorite, Icons.Default.Star,
+    // Essentials / Needs
+    Icons.Default.Restaurant,      // Hunger / Eat
+    Icons.Default.LocalDrink,      // Thirst / Drink
+    Icons.Default.Wc,              // Bathroom
+    Icons.Default.Hotel,           // Tired / Sleep
+    Icons.Default.MedicalServices, // Pain / Doctor
+
+    // Emotions
+    Icons.Default.SentimentVerySatisfied, // Happy / Yes
+    Icons.Default.SentimentVeryDissatisfied, // Sad / No / Hurt
+    Icons.Default.Warning,                 // Danger / Stop
+
+    // Social / People
+    Icons.Default.Handshake,       // Hello / Please
+    Icons.Default.PanTool,         // Stop / Wait
+    Icons.Default.Favorite,        // Like / Love
+    Icons.Default.Home,            // Home
+    Icons.Default.Groups,          // Family / Friends
+
+    // Actions / Activities
+    Icons.Default.MusicNote,       // Music / Listen
+    Icons.Default.PlayArrow,       // Start / Play
+    Icons.Default.CheckCircle,     // Done / Good
+    Icons.Default.Cancel,          // Bad / End
+    Icons.Default.Help,            // Question / I don't know
+
+    // Objects
+    Icons.Default.Smartphone,      // Phone / App
+    Icons.Default.ShoppingBag      // Buy / Want
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -297,7 +376,7 @@ fun AddButtonDialog(
     var name by remember { mutableStateOf(initialButton?.name ?: "") }
 
     var selectedEffect by remember {
-        mutableStateOf((initialButton as? SoundEffectButton)?.soundEffect ?: SoundEffect.KISS)
+        mutableStateOf((initialButton as? SoundEffectButton)?.soundEffect ?: SoundEffect.AWW)
     }
     var ttsText by remember {
         mutableStateOf((initialButton as? TTSButton)?.ttsText ?: "")
