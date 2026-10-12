@@ -238,7 +238,9 @@ fun MainScreen(
                     comunicacionViewModel,
                     soundManagerViewModel
                 )
-                2 -> SignLanguageGrid()
+                2 -> SignLanguageGrid(
+                    isColorblindMode = soundboardViewModel.appTheme.collectAsState().value == AppTheme.COLORBLIND
+                )
             }
         }
     }
