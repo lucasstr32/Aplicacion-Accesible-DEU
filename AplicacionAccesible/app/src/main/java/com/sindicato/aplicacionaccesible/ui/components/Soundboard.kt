@@ -871,16 +871,7 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
                 }
             },
             actions = {
-                if (soundboardViewModel.isEditMode) {
-                    Button(
-                        onClick = { soundboardViewModel.toggleEditMode() },
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Aceptar")
-                    }
-                } else {
+                if (!soundboardViewModel.isEditMode) {
                     if(soundboardViewModel.templates.isNotEmpty()) {
                         TextButton(
                             onClick = { soundboardViewModel.toggleEditMode() }
@@ -924,6 +915,18 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.delete_template), textAlign = TextAlign.Center)
                 }
+            }
+            Button(
+                onClick = { soundboardViewModel.toggleEditMode() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                    .heightIn(min = 48.dp),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.apply_changes))
             }
         }
     }

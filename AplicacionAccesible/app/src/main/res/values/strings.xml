@@ -28,6 +28,7 @@
     <string name="edit_button">Editar %1$s</string>
     <string name="rename_template">Editar Nombre Plantilla</string>
     <string name="delete_template">Eliminar Plantilla</string>
+    <string name="apply_changes">Aplicar Cambios</string>
     <string name="rename_template_title">Cambiar nombre</string>
     <string name="save">Guardar</string>
     <string name="delete">Eliminar</string>
