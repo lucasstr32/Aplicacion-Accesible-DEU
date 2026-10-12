@@ -6,6 +6,8 @@ import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sindicato.aplicacionaccesible.data.settings.SettingsRepository
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
@@ -15,8 +17,11 @@ import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class SoundManagerViewModel(): ViewModel() {
+class SoundManagerViewModel(
+    private val settingsRepository: SettingsRepository
+): ViewModel() {
 
     private var mediaPlayer: MediaPlayer? = null
     //private var tts: TextToSpeech? = null
@@ -32,6 +37,20 @@ class SoundManagerViewModel(): ViewModel() {
 
     private val _selectedLanguage = MutableStateFlow(AppLanguage.SPANISH)
     val selectedLanguage = _selectedLanguage.asStateFlow()
+
+    init {
+        // Aplica los ajustes guardados; TTSManager los conserva hasta que el motor esté listo
+        viewModelScope.launch {
+            settingsRepository.settings.collect { settings ->
+                _ttsPitch.value = settings.pitch
+                _ttsSpeechRate.value = settings.speechRate
+                _selectedLanguage.value = settings.language
+                TTSManager.setPitch(settings.pitch)
+                TTSManager.setSpeechRate(settings.speechRate)
+                TTSManager.applyLanguage(settings.language)
+            }
+        }
+    }
 
 
     fun playSound(context: Context, button: SoundButton) {
@@ -74,6 +93,7 @@ class SoundManagerViewModel(): ViewModel() {
         _selectedLanguage.value = language
         // Apply directly to the audio engine
         TTSManager.applyLanguage(language)
+        viewModelScope.launch { settingsRepository.setLanguage(language) }
     }
 
 //    fun getSpeechLanguage(): String {
@@ -83,12 +103,14 @@ class SoundManagerViewModel(): ViewModel() {
     fun setSpeechRate(speed: Float){
         TTSManager.setSpeechRate(speed)
         _ttsSpeechRate.value = speed
+        viewModelScope.launch { settingsRepository.setSpeechRate(speed) }
     }
 
 
     fun setPitch(pitch: Float){
         TTSManager.setPitch(pitch)
         _ttsPitch.value = pitch
+        viewModelScope.launch { settingsRepository.setPitch(pitch) }
     }
 
     private fun stopAndReleasePlayer() {

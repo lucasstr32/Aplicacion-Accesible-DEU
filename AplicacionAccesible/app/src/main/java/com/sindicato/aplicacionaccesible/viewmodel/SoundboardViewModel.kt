@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
+import com.sindicato.aplicacionaccesible.data.settings.SettingsRepository
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.TTSButton
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,8 @@ import kotlinx.coroutines.launch
 
 class SoundboardViewModel(
     val templateRepository: TemplateRepository,
-    val buttonRepository: ButtonRepository
+    val buttonRepository: ButtonRepository,
+    private val settingsRepository: SettingsRepository
 ): ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
@@ -34,6 +36,7 @@ class SoundboardViewModel(
     var currentTemplateIndex by mutableIntStateOf(0)
     var isEditMode by mutableStateOf(false)
     var columnCount by mutableIntStateOf(2)
+        private set
 
     // Configuración de la aplicación (Global)
     //var appTheme by mutableStateOf(AppTheme.LIGHT)
@@ -45,14 +48,26 @@ class SoundboardViewModel(
 //    //private var tts: TextToSpeech? = null
 //    private var isTtsReady = false
 
-    private val _appTheme = MutableStateFlow(AppTheme.LIGHT)
-    val appTheme: StateFlow<AppTheme> = _appTheme.asStateFlow()
+    // null = la persona no eligió tema: se sigue el del sistema
+    private val _appTheme = MutableStateFlow<AppTheme?>(null)
+    val appTheme: StateFlow<AppTheme?> = _appTheme.asStateFlow()
 
 
 
 
     init {
         loadTemplatesFromDb()
+        viewModelScope.launch {
+            settingsRepository.settings.collect { settings ->
+                _appTheme.value = settings.theme
+                columnCount = settings.columnCount
+            }
+        }
+    }
+
+    fun updateColumnCount(count: Int) {
+        columnCount = count
+        viewModelScope.launch { settingsRepository.setColumnCount(count) }
     }
 
 //    private fun initTts(context: Context) {
@@ -274,6 +289,7 @@ class SoundboardViewModel(
     fun setAppTheme(newTheme: AppTheme) {
 
         _appTheme.value = newTheme
+        viewModelScope.launch { settingsRepository.setTheme(newTheme) }
     }
 
 

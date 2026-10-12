@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -32,6 +33,7 @@ import com.sindicato.aplicacionaccesible.data.AppDatabase
 import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
+import com.sindicato.aplicacionaccesible.data.settings.SettingsRepository
 import com.sindicato.aplicacionaccesible.ui.components.SettingsDialog
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
@@ -79,6 +81,7 @@ class MainActivity : ComponentActivity() {
 
         templateRepository = TemplateRepository(database.templateDao())
         buttonRepository = ButtonRepository(database.buttonDao())
+        val settingsRepository = SettingsRepository(applicationContext)
 
 
 
@@ -87,13 +90,19 @@ class MainActivity : ComponentActivity() {
             val soundboardViewModel: SoundboardViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                        return SoundboardViewModel(templateRepository, buttonRepository) as T
+                        return SoundboardViewModel(templateRepository, buttonRepository, settingsRepository) as T
                     }
                 }
             )
             // viewModel() conserva las instancias entre recomposiciones (p. ej. al cambiar
             // el tema) y rotaciones; antes se creaban de nuevo y se perdían los ajustes.
-            val soundManagerViewModel: SoundManagerViewModel = viewModel()
+            val soundManagerViewModel: SoundManagerViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return SoundManagerViewModel(settingsRepository) as T
+                    }
+                }
+            )
             val comunicacionViewModel: ComunicacionViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -102,7 +111,9 @@ class MainActivity : ComponentActivity() {
                 }
             )
 
-            val currentTheme by soundboardViewModel.appTheme.collectAsState()
+            val savedTheme by soundboardViewModel.appTheme.collectAsState()
+            // Mientras no se elija un tema, se sigue el claro/oscuro del sistema
+            val currentTheme = savedTheme ?: if (isSystemInDarkTheme()) AppTheme.DARK else AppTheme.LIGHT
 
             AplicacionAccesibleTheme(appTheme = currentTheme) {
                 MainScreen(
@@ -194,7 +205,7 @@ fun MainScreen(
                         IconButton(onClick = {
                             val columnCount = soundboardViewModel.columnCount
                             val nextCols = if (columnCount >= 4) 2 else columnCount + 1
-                            soundboardViewModel.columnCount = nextCols
+                            soundboardViewModel.updateColumnCount(nextCols)
                         }) {
                             Icon(Icons.Default.CalendarViewMonth, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
                         }

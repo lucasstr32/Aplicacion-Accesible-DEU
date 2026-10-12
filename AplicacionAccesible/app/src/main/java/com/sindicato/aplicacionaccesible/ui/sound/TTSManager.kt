@@ -7,38 +7,40 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.Locale
 
 
 object TTSManager {
 
     private var isInitialized = false
     private var tts: TextToSpeech? = null
+
+    // Valores deseados: se guardan aunque el motor no esté listo y se aplican al iniciar
     var currentLanguage: AppLanguage = AppLanguage.SPANISH
         private set
+    private var pitch = 1.0f
+    private var speechRate = 1.0f
+
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     private val _isSpeaking = MutableStateFlow(false)
     val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
 
 
-    val ttsText: String = ""
-
-
     fun init(context: Context) {
         Log.d("TTSManager", "Inicializando TTS. Estado: $isInitialized")
-        if(isInitialized) return
+        if (isInitialized || tts != null) return
 
-        setupTts(context)
+        setupTts(context.applicationContext)
     }
-
 
 
     private fun setupTts(context: Context) {
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 isInitialized = true
-                tts?.setPitch(1.0f)
-                tts?.setSpeechRate(1.0f)
+                tts?.setPitch(pitch)
+                tts?.setSpeechRate(speechRate)
                 applyLanguage(currentLanguage)
                 tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {
@@ -58,12 +60,16 @@ object TTSManager {
                         _isSpeaking.value = false
                     }
                 })
+                _isReady.value = true
+            } else {
+                Log.e("TTSManager", "No se pudo inicializar el motor TTS: $status")
             }
         }
     }
 
     fun applyLanguage(language: AppLanguage) {
         currentLanguage = language
+        if (!isInitialized) return
         val result = tts?.setLanguage(language.locale)
         if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
             Log.e("TTSManager", "Language ${language.displayName} not supported")
@@ -78,25 +84,21 @@ object TTSManager {
         }
     }
 
-    fun setPitch(pitch: Float){
-        tts?.setPitch(pitch)
+    fun setPitch(pitch: Float) {
+        this.pitch = pitch
+        if (isInitialized) tts?.setPitch(pitch)
     }
 
-    fun setSpeechLanguage(language: Locale){
-        tts?.language = language
+    fun setSpeechRate(rate: Float) {
+        speechRate = rate
+        if (isInitialized) tts?.setSpeechRate(rate)
     }
 
-
-    fun setSpeechRate(rate: Float){
-        tts?.setSpeechRate(rate)
-    }
-
-    fun release(){
+    fun release() {
         tts?.stop()
         tts?.shutdown()
+        tts = null
         isInitialized = false
+        _isReady.value = false
     }
-
-
-
 }

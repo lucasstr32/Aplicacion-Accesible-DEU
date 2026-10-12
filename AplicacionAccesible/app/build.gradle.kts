@@ -68,6 +68,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // Ajustes persistentes
+    implementation(libs.androidx.datastore.preferences)
+
 
 
 }

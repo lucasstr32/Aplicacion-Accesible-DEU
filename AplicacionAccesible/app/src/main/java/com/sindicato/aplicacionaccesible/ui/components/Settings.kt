@@ -1,6 +1,7 @@
 package com.sindicato.aplicacionaccesible.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -39,7 +40,8 @@ fun SettingsDialog(
 ) {
     val currentPitch by soundManagerViewModel.ttsPitch.collectAsState()
     val currentSpeechRate by soundManagerViewModel.ttsSpeechRate.collectAsState()
-    val currentTheme by soundboardViewModel.appTheme.collectAsState()
+    val savedTheme by soundboardViewModel.appTheme.collectAsState()
+    val currentTheme = savedTheme ?: if (isSystemInDarkTheme()) AppTheme.DARK else AppTheme.LIGHT
 
     Dialog(
         onDismissRequest = onDismiss,
