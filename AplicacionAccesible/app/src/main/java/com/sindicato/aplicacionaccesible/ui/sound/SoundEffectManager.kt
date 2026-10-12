@@ -22,8 +22,10 @@ object SoundEffectManager {
     fun init(context: Context) {
         if (isInitialized) return
 
+        // USAGE_MEDIA: los efectos son la voz de la persona, así que usan el volumen
+        // multimedia (como el TTS) y no se silencian en modo vibración/silencio.
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
