@@ -496,7 +496,8 @@ fun AddButtonDialog(
                                                 onClick = {
                                                     // This plays the sound without closing the menu
                                                     soundManagerViewModel.previewSound(context, effect)
-                                                }
+                                                },
+                                                modifier = Modifier.size(48.dp)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.PlayArrow,

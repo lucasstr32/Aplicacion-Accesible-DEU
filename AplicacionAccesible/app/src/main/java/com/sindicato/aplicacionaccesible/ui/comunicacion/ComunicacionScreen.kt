@@ -308,8 +308,8 @@ fun QuickPhraseCard(
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
-            // IconButton ya garantiza un área táctil mínima de 48 dp
-            IconButton(onClick = onDelete) {
+            // Área táctil de 48 dp aunque el ícono sea pequeño
+            IconButton(onClick = onDelete, modifier = Modifier.size(48.dp)) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = stringResource(R.string.delete_phrase, phrase.text),
