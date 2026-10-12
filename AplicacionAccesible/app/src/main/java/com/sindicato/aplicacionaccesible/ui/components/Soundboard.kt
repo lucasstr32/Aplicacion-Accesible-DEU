@@ -1,8 +1,6 @@
 package com.sindicato.aplicacionaccesible.ui.components
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -122,7 +120,6 @@ import com.sindicato.aplicacionaccesible.ui.theme.toSafeColor
 import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview()
 fun SoundboardPreview(){
@@ -132,7 +129,6 @@ fun SoundboardPreview(){
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Soundboard(
@@ -153,7 +149,6 @@ fun Soundboard(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SoundGrid(
     soundboardViewModel: SoundboardViewModel,
@@ -393,11 +388,6 @@ fun AddButtonDialogPreview() {
 }
 
 
-
-val buttonColors = listOf(
-    Color(0xFFEF5350), Color(0xFF66BB6A), Color(0xFF42A5F5),
-    Color(0xFFFFCA28), Color(0xFFAB47BC), Color(0xFF26A69A)
-)
 
 // Nombres accesibles de SafeColors, en el mismo orden
 val safeColorNames = listOf(

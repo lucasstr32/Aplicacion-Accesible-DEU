@@ -13,7 +13,6 @@ import com.sindicato.aplicacionaccesible.data.PhraseEntity
 import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 
 /**
  * Indica si [text] ya está entre [phrases], sin distinguir mayúsculas ni
@@ -33,13 +32,9 @@ class ComunicacionViewModel(context: Context) : ViewModel(), RecognitionListener
     private val _uiState = MutableStateFlow(ComunicacionUiState())
     val uiState: StateFlow<ComunicacionUiState> = _uiState.asStateFlow()
 
-    //private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
 
-
-
     init {
-        //setupTts()
         setupSpeechRecognizer()
         observePhrases()
         observeTtsProgress()
@@ -82,36 +77,6 @@ class ComunicacionViewModel(context: Context) : ViewModel(), RecognitionListener
             phraseDao.deletePhrase(phrase)
         }
     }
-
-//    private fun setupTts() {
-//        _uiState.update { it.copy(ttsStatus = TtsStatus.CARGANDO) }
-//        tts = TextToSpeech(context) { status ->
-//            if (status == TextToSpeech.SUCCESS) {
-//                TTSManager.language = Locale.getDefault()
-//                TTSManager.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-//                    override fun onStart(utteranceId: String?) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.REPRODUCIENDO) }
-//                    }
-//
-//                    override fun onDone(utteranceId: String?) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
-//                    }
-//
-//                    @Deprecated("Deprecated in Java")
-//                    override fun onError(utteranceId: String?) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS") }
-//                    }
-//
-//                    override fun onError(utteranceId: String?, errorCode: Int) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS: $errorCode") }
-//                    }
-//                })
-//                _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
-//            } else {
-//                _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "No se pudo inicializar TTS") }
-//            }
-//        }
-//    }
 
     private fun setupSpeechRecognizer() {
         if (SpeechRecognizer.isRecognitionAvailable(context)) {

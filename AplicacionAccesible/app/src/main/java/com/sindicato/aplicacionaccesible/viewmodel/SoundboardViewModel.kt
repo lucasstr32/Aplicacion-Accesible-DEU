@@ -38,22 +38,9 @@ class SoundboardViewModel(
     var columnCount by mutableIntStateOf(2)
         private set
 
-    // Configuración de la aplicación (Global)
-    //var appTheme by mutableStateOf(AppTheme.LIGHT)
-//    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
-//    var ttsPitch by mutableFloatStateOf(1.0f)
-//    var ttsSpeed by mutableFloatStateOf(1.0f)
-
-//    private var mediaPlayer: MediaPlayer? = null
-//    //private var tts: TextToSpeech? = null
-//    private var isTtsReady = false
-
     // null = la persona no eligió tema: se sigue el del sistema
     private val _appTheme = MutableStateFlow<AppTheme?>(null)
     val appTheme: StateFlow<AppTheme?> = _appTheme.asStateFlow()
-
-
-
 
     init {
         loadTemplatesFromDb()
@@ -70,21 +57,6 @@ class SoundboardViewModel(
         viewModelScope.launch { settingsRepository.setColumnCount(count) }
     }
 
-//    private fun initTts(context: Context) {
-//        if (tts == null) {
-//            tts = TextToSpeech(context.applicationContext) { status ->
-//                if (status == TextToSpeech.SUCCESS) {
-//                    updateTtsSettings()
-//                    isTtsReady = true
-//                }
-//            }
-//        } else if (isTtsReady) {
-//            updateTtsSettings()
-//        }
-//    }
-
-
-
     fun addTemplate(name: String) {
         val template = Template(name = name)
         _templates.add(template)
@@ -96,7 +68,6 @@ class SoundboardViewModel(
 
         }
     }
-
 
     private fun loadTemplatesFromDb() {
         viewModelScope.launch {
@@ -188,24 +159,6 @@ class SoundboardViewModel(
         }
     }
 
-//    fun playSound(context: Context, button: SoundButton) {
-//        if (button.ttsText != null) {
-//            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
-//
-////            initTts(context)
-////            if (isTtsReady) {
-////                updateTtsSettings()
-////                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
-////            }
-//            TTSManager.speak(button.ttsText)
-//        } else if (button.soundEffect != null) {
-//            mediaPlayer?.stop()
-//            mediaPlayer?.release()
-//            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
-//            mediaPlayer?.start()
-//        }
-//    }
-
     fun deleteButtonAtPosition(position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position }
@@ -215,14 +168,6 @@ class SoundboardViewModel(
             buttonRepository.deleteButton(currentTemplate.id, position)
         }
     }
-
-//    fun previewSound(context: Context, soundEffect: SoundEffect) {
-//        mediaPlayer?.stop()
-//        mediaPlayer?.release()
-//        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
-//        mediaPlayer?.start()
-//    }
-
 
     fun updateTTSButton(
         button: SoundButton,
@@ -292,14 +237,5 @@ class SoundboardViewModel(
         viewModelScope.launch { settingsRepository.setTheme(newTheme) }
     }
 
-
-
-
-//    override fun onCleared() {
-//        super.onCleared()
-//        mediaPlayer?.release()
-//        tts?.stop()
-//        tts?.shutdown()
-//    }
 }
 
