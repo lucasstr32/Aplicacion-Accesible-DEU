@@ -22,6 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -127,25 +130,41 @@ fun ModeSelector(
     selectedMode: ComunicacionMode,
     onModeSelected: (ComunicacionMode) -> Unit
 ) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        SegmentedButton(
-            selected = selectedMode == ComunicacionMode.TEXT_TO_SPEECH,
-            onClick = { onModeSelected(ComunicacionMode.TEXT_TO_SPEECH) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-            icon = { Icon(Icons.Default.Edit, contentDescription = null) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Texto a Voz")
+            SegmentedButton(
+                selected = selectedMode == ComunicacionMode.TEXT_TO_SPEECH,
+                onClick = { onModeSelected(ComunicacionMode.TEXT_TO_SPEECH) },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                icon = { Icon(Icons.Default.Edit, contentDescription = null) }
+            ) {
+                Text("Texto a Voz")
+            }
+            SegmentedButton(
+                selected = selectedMode == ComunicacionMode.SPEECH_TO_TEXT,
+                onClick = { onModeSelected(ComunicacionMode.SPEECH_TO_TEXT) },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                icon = { Icon(Icons.Default.Mic, contentDescription = null) }
+            ) {
+                Text("Voz a Texto")
+            }
         }
-        SegmentedButton(
-            selected = selectedMode == ComunicacionMode.SPEECH_TO_TEXT,
-            onClick = { onModeSelected(ComunicacionMode.SPEECH_TO_TEXT) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-            icon = { Icon(Icons.Default.Mic, contentDescription = null) }
-        ) {
-            Text("Voz a Texto")
-        }
+        // Línea de ayuda del modo activo
+        Text(
+            text = stringResource(
+                if (selectedMode == ComunicacionMode.TEXT_TO_SPEECH) R.string.mode_help_tts
+                else R.string.mode_help_stt
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite }
+        )
     }
 }
 
@@ -155,11 +174,12 @@ fun TtsSection(
     onTextChanged: (String) -> Unit,
     status: TtsStatus,
     onSpeak: () -> Unit,
-    onSavePhrase: () -> Unit,
+    onSavePhrase: () -> Boolean,
     savedPhrases: List<PhraseEntity>,
     onDeletePhrase: (PhraseEntity) -> Unit
 ) {
     var localError by remember { mutableStateOf<String?>(null) }
+    val duplicateMessage = stringResource(R.string.phrase_already_saved)
 
     Column(
         modifier = Modifier
@@ -196,15 +216,14 @@ fun TtsSection(
                 } else {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Escuchar")
+                    Text(stringResource(R.string.tts_speak))
                 }
             }
             
             OutlinedButton(
                 onClick = { 
                     if (text.isNotBlank()) {
-                        onSavePhrase()
-                        localError = null
+                        localError = if (onSavePhrase()) null else duplicateMessage
                     } else {
                         localError = "Escribe un mensaje antes de guardar"
                     }
@@ -221,9 +240,11 @@ fun TtsSection(
         if (localError != null) {
             Text(
                 text = localError!!,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp)
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
@@ -394,7 +415,8 @@ fun SttSection(
             onClick = onMicClick,
             containerColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primary,
             contentColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimary,
-            expanded = status == SttStatus.ESCUCHANDO,
+            // Siempre expandido para que la acción tenga texto visible y accesible
+            expanded = true,
             icon = {
                 Icon(
                     imageVector = if (status == SttStatus.ESCUCHANDO) Icons.Default.Stop else Icons.Default.Mic,
@@ -402,7 +424,7 @@ fun SttSection(
                 )
             },
             text = {
-                Text(if (status == SttStatus.ESCUCHANDO) "Detener" else "Empezar a hablar")
+                Text(if (status == SttStatus.ESCUCHANDO) "Detener" else stringResource(R.string.stt_start))
             }
         )
 

@@ -2,7 +2,11 @@ package com.sindicato.aplicacionaccesible.ui.sound
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
 
@@ -10,7 +14,11 @@ object TTSManager {
 
     private var isInitialized = false
     private var tts: TextToSpeech? = null
-    private var currentLanguage: AppLanguage = AppLanguage.SPANISH
+    var currentLanguage: AppLanguage = AppLanguage.SPANISH
+        private set
+
+    private val _isSpeaking = MutableStateFlow(false)
+    val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
 
 
     val ttsText: String = ""
@@ -32,6 +40,24 @@ object TTSManager {
                 tts?.setPitch(1.0f)
                 tts?.setSpeechRate(1.0f)
                 applyLanguage(currentLanguage)
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                        _isSpeaking.value = true
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        _isSpeaking.value = false
+                    }
+
+                    @Deprecated("Deprecated in Java")
+                    override fun onError(utteranceId: String?) {
+                        _isSpeaking.value = false
+                    }
+
+                    override fun onStop(utteranceId: String?, interrupted: Boolean) {
+                        _isSpeaking.value = false
+                    }
+                })
             }
         }
     }

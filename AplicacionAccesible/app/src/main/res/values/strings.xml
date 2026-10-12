@@ -4,6 +4,13 @@
     <!-- Barra superior -->
     <string name="help">Ayuda</string>
 
+    <!-- Comunicación -->
+    <string name="mode_help_tts">Tú escribes → la app lo dice en voz alta</string>
+    <string name="mode_help_stt">La otra persona habla → la app lo escribe</string>
+    <string name="tts_speak">Decir en voz alta</string>
+    <string name="stt_start">Empezar a escuchar</string>
+    <string name="phrase_already_saved">Ya la tienes guardada</string>
+
     <!-- Frases rápidas -->
     <string name="tts_tip">Escribe tu mensaje y toca “Guardar” para tenerlo a mano en Frases rápidas.</string>
     <string name="delete_phrase">Eliminar frase: %1$s</string>

@@ -1,6 +1,5 @@
 package com.sindicato.aplicacionaccesible
 
-import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -60,7 +59,6 @@ class MainActivity : ComponentActivity() {
 
 
 
-    @SuppressLint("ViewModelConstructorInComposable")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,8 +91,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             )
-            val soundManagerViewModel = SoundManagerViewModel()
-            val comunicacionViewModel = ComunicacionViewModel(this)
+            // viewModel() conserva las instancias entre recomposiciones (p. ej. al cambiar
+            // el tema) y rotaciones; antes se creaban de nuevo y se perdían los ajustes.
+            val soundManagerViewModel: SoundManagerViewModel = viewModel()
+            val comunicacionViewModel: ComunicacionViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return ComunicacionViewModel(applicationContext) as T
+                    }
+                }
+            )
 
             val currentTheme by soundboardViewModel.appTheme.collectAsState()
 
@@ -102,7 +108,7 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     soundboardViewModel = soundboardViewModel,
                     soundManagerViewModel = soundManagerViewModel,
-                    comunicacionViewModel = ComunicacionViewModel(this)
+                    comunicacionViewModel = comunicacionViewModel
                 )
             }
         }
