@@ -35,6 +35,10 @@ class SoundboardViewModel(
     val templates: List<Template> = _templates
     var currentTemplateIndex by mutableIntStateOf(0)
     var isEditMode by mutableStateOf(false)
+
+    // true cuando terminó la carga inicial de plantillas desde la base
+    var templatesLoaded by mutableStateOf(false)
+        private set
     var columnCount by mutableIntStateOf(2)
         private set
 
@@ -73,13 +77,17 @@ class SoundboardViewModel(
         viewModelScope.launch {
             try {
                 val dbTemplates = templateRepository.getAllTemplates()
+                // Conserva las plantillas creadas mientras se leía la base
+                val addedMeanwhile = _templates.filter { local -> dbTemplates.none { it.id == local.id } }
                 _templates.clear()
-                _templates.addAll(dbTemplates)
+                _templates.addAll(dbTemplates + addedMeanwhile)
 
                 // Log to verify info is arriving
                 Log.d("Templates", "Loaded ${dbTemplates.size} templates from DB")
             } catch (e: Exception) {
                 Log.e("Templates", "Error loading templates", e)
+            } finally {
+                templatesLoaded = true
             }
         }
     }
