@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -831,74 +832,101 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
         )
     }
 
-    TopAppBar(
-        navigationIcon = {
-            // No se puede crear otra plantilla mientras se edita una
-            if (!soundboardViewModel.isEditMode) {
-                IconButton(onClick = { showDialog = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir Plantilla")
+    Column {
+        TopAppBar(
+            navigationIcon = {
+                // No se puede crear otra plantilla mientras se edita una
+                if (!soundboardViewModel.isEditMode) {
+                    IconButton(onClick = { showDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Añadir Plantilla")
+                    }
                 }
-            }
-        },
-        title = {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp)
-            ) {
-                if (soundboardViewModel.isEditMode) {
-                    val template = soundboardViewModel.templates.getOrNull(soundboardViewModel.currentTemplateIndex)
-                    if (template != null) {
-                        item {
+            },
+            title = {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    if (soundboardViewModel.isEditMode) {
+                        val template = soundboardViewModel.templates.getOrNull(soundboardViewModel.currentTemplateIndex)
+                        if (template != null) {
+                            item {
+                                FilterChip(
+                                    selected = true,
+                                    onClick = { },
+                                    label = { Text(template.name) }
+                                )
+                            }
+                        }
+                    } else {
+                        itemsIndexed(soundboardViewModel.templates) { index, template ->
                             FilterChip(
-                                selected = true,
-                                onClick = { showRenameDialog = true },
-                                label = { Text(template.name) },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Edit,
-                                        contentDescription = stringResource(R.string.rename_template),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
+                                selected = soundboardViewModel.currentTemplateIndex == index,
+                                onClick = { soundboardViewModel.currentTemplateIndex = index },
+                                label = { Text(template.name) }
                             )
                         }
                     }
+                }
+            },
+            actions = {
+                if (soundboardViewModel.isEditMode) {
+                    Button(
+                        onClick = { soundboardViewModel.toggleEditMode() },
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Aceptar")
+                    }
                 } else {
-                    itemsIndexed(soundboardViewModel.templates) { index, template ->
-                        FilterChip(
-                            selected = soundboardViewModel.currentTemplateIndex == index,
-                            onClick = { soundboardViewModel.currentTemplateIndex = index },
-                            label = { Text(template.name) }
-                        )
+                    if(soundboardViewModel.templates.isNotEmpty()) {
+                        TextButton(
+                            onClick = { soundboardViewModel.toggleEditMode() }
+                        ) {
+                            Text("Editar")
+                        }
                     }
                 }
             }
-        },
-        actions = {
-            if (soundboardViewModel.isEditMode) {
-                IconButton(onClick = { showDeleteConfirm = true }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Borrar Plantilla", tint = MaterialTheme.colorScheme.error)
-                }
-                Button(
-                    onClick = { soundboardViewModel.toggleEditMode() },
+        )
+
+        // Acciones de la plantilla en edición, con texto que explica cada una
+        if (soundboardViewModel.isEditMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { showRenameDialog = true },
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Aceptar")
+                    Text(stringResource(R.string.rename_template), textAlign = TextAlign.Center)
                 }
-            } else {
-                if(soundboardViewModel.templates.isNotEmpty()) {
-                    TextButton(
-                        onClick = { soundboardViewModel.toggleEditMode() }
-                    ) {
-                        Text("Editar")
-                    }
+                OutlinedButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.delete_template), textAlign = TextAlign.Center)
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
