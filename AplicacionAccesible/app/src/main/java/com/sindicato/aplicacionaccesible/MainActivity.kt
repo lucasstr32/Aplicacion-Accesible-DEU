@@ -9,18 +9,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CalendarViewMonth
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SignLanguage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -128,7 +128,7 @@ fun MainScreen(
     var showSettings by remember { mutableStateOf(false) }
 
     val helpContent = when (selectedTab) {
-        0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas desde el menú superior (icono de tres líneas)."
+        0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas con el botón de columnas del menú superior."
         1 -> "Comunicación" to "Aquí tienes dos modos: 'Texto a Voz' para escribir lo que quieres que la app diga, y 'Voz a Texto' para que la app transcriba lo que hablas. Cambia entre ellos usando el selector superior."
         else -> "Lenguaje de Señas" to "Explora palabras en lenguaje de señas. Toca una palabra en la lista para ver su representación visual. Puedes volver a la lista usando el botón de retroceso en el detalle."
     }
@@ -143,7 +143,7 @@ fun MainScreen(
             },
             title = {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Help, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.Help, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Ayuda: ${helpContent.first}")
                 }
@@ -173,6 +173,12 @@ fun MainScreen(
                     ) 
                 },
                 actions = {
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Help,
+                            contentDescription = stringResource(R.string.help)
+                        )
+                    }
                     IconButton(onClick = { showSettings = true }) {
                         Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
@@ -195,33 +201,20 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.PlayArrow, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null) },
                     label = { Text("Sonidos") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null) },
                     label = { Text("Comunicación") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Menu, contentDescription = null) },
+                    icon = { Icon(Icons.Default.SignLanguage, contentDescription = null) },
                     label = { Text("Señas") }
-                )
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showHelpDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Help,
-                    contentDescription = "Botón de Ayuda"
                 )
             }
         }

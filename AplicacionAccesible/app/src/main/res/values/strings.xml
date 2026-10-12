@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">AplicacionAccesible</string>
 
+    <!-- Barra superior -->
+    <string name="help">Ayuda</string>
+
     <!-- Frases rápidas -->
+    <string name="tts_tip">Escribe tu mensaje y toca “Guardar” para tenerlo a mano en Frases rápidas.</string>
     <string name="delete_phrase">Eliminar frase: %1$s</string>
 
     <!-- Selector de tono -->

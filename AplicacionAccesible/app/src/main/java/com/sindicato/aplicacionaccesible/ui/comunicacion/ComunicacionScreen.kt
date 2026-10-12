@@ -274,7 +274,7 @@ fun TtsSection(
 
         InfoBox(
             title = "Consejo",
-            description = "Escribe y presiona el icono '+' para guardar frases que uses frecuentemente."
+            description = stringResource(R.string.tts_tip)
         )
     }
 }
