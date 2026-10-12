@@ -51,7 +51,7 @@ object DatabaseSeeder {
                         soundEffect = null, // Usará TTS
                         ttsText = "Permiso",
                         color = 0xFF009E73, // SafeGreen
-                        iconRes = 5 // Face
+                        iconRes = 9 // PanTool
                     ),
                     ButtonEntity(
                         templateId = afueraTemplate.id,
@@ -60,7 +60,7 @@ object DatabaseSeeder {
                         soundEffect = SoundEffect.MALE_OUCH.name, // Usará sonido físico
                         ttsText = null,
                         color = 0xFF0072B2, // SafeBlue
-                        iconRes = 0 // Music
+                        iconRes = 4 // MedicalServices
                     ),
                     ButtonEntity(
                         templateId = afueraTemplate.id,
@@ -69,7 +69,7 @@ object DatabaseSeeder {
                         soundEffect = null,
                         ttsText = "Si",
                         color = 0xFF009E73, // SafeGreen
-                        iconRes = 0 // Music
+                        iconRes = 15 // CheckCircle
                     ),
                     ButtonEntity(
                         templateId = afueraTemplate.id,
@@ -78,7 +78,7 @@ object DatabaseSeeder {
                         soundEffect = null,
                         ttsText = "No",
                         color = 0xFF009E73, // SafeGreen
-                        iconRes = 0
+                        iconRes = 16 // Cancel
                     ),
                     ButtonEntity(
                         templateId = afueraTemplate.id,
@@ -87,7 +87,7 @@ object DatabaseSeeder {
                         soundEffect = null,
                         ttsText = "Gracias",
                         color = 0xFF009E73, // SafeGreen
-                        iconRes = 0
+                        iconRes = 5 // SentimentVerySatisfied
                     )
                 )
 
@@ -106,7 +106,7 @@ object DatabaseSeeder {
                         soundEffect = null,
                         ttsText = "No entendí, ¿Podrías repetir?",
                         color = 0xFFD55E00, // SafeRed
-                        iconRes = 4 // Warning
+                        iconRes = 17 // Help
                     ),
                     ButtonEntity(
                         templateId = facultadTemplate.id,
@@ -115,7 +115,7 @@ object DatabaseSeeder {
                         soundEffect = null,
                         ttsText = "Necesito ayuda",
                         color = 0xFFE69F00, // SafeOrange
-                        iconRes = 1 // Notifications
+                        iconRes = 7 // Warning
                     ),
                     ButtonEntity(
                         templateId = facultadTemplate.id,
@@ -124,7 +124,7 @@ object DatabaseSeeder {
                         soundEffect = null,
                         ttsText = "¿Puedo ir al baño?",
                         color = 0xFFE69F00, // SafeOrange
-                        iconRes = 0 // Music
+                        iconRes = 2 // Wc
                     ),
                     ButtonEntity(
                         templateId = facultadTemplate.id,
@@ -133,7 +133,7 @@ object DatabaseSeeder {
                         soundEffect = SoundEffect.MALE_THINKING.name,
                         ttsText = null,
                         color = 0xFF009E73, // SafeGreen
-                        iconRes = 0 // Music
+                        iconRes = 13 // MusicNote
                     )
                 )
 

@@ -37,4 +37,12 @@ class ContrastTest {
     fun blackOnWhiteIsMaximumContrast() {
         assertEquals(21.0, contrastRatio(Color.Black, Color.White), 0.01)
     }
+
+    @Test
+    fun toSafeColorKeepsPaletteAndMapsOthers() {
+        SafeColors.forEach { assertEquals(it, toSafeColor(it)) }
+        // Colores de la paleta anterior (buttonColors) caen en la paleta segura
+        assertTrue(toSafeColor(Color(0xFFEF5350)) in SafeColors)
+        assertEquals(SafeYellow, toSafeColor(Color(0xFFFFEB3B)))
+    }
 }

@@ -71,3 +71,17 @@ fun getContrastColor(backgroundColor: Color): Color {
     val withWhite = contrastRatio(backgroundColor, Color.White)
     return if (withBlack >= withWhite) Color.Black else Color.White
 }
+
+/**
+ * Devuelve el color de SafeColors más cercano, para que todos los botones
+ * usen la misma paleta aunque se hayan guardado con otro color.
+ */
+fun toSafeColor(color: Color): Color {
+    if (color in SafeColors) return color
+    return SafeColors.minBy { safe ->
+        val dr = safe.red - color.red
+        val dg = safe.green - color.green
+        val db = safe.blue - color.blue
+        dr * dr + dg * dg + db * db
+    }
+}

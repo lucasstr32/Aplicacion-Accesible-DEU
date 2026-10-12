@@ -94,6 +94,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -105,6 +107,7 @@ import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.TTSButton
 import com.sindicato.aplicacionaccesible.viewmodel.SoundboardViewModel
 import com.sindicato.aplicacionaccesible.ui.theme.SafeColors
 import com.sindicato.aplicacionaccesible.ui.theme.getContrastColor
+import com.sindicato.aplicacionaccesible.ui.theme.toSafeColor
 import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 
 
@@ -272,7 +275,7 @@ fun SoundButtonItem(
     onLongClick: () -> Unit,
     soundboardViewModel: SoundboardViewModel
 ) {
-    val backgroundColor = Color(button.color)
+    val backgroundColor = toSafeColor(Color(button.color))
     val contentColor = getContrastColor(backgroundColor)
 
     // Aplicar transparencia en modo edición
@@ -294,7 +297,10 @@ fun SoundButtonItem(
     ) {
         Box(contentAlignment = Alignment.Center) {
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            ) {
                 Icon(
                     imageVector = availableIcons.getOrNull(button.iconRes) ?: Icons.Default.MusicNote,
                     contentDescription = null,
@@ -302,8 +308,10 @@ fun SoundButtonItem(
                 )
                 Text(
                     text = button.name,
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -408,7 +416,7 @@ fun AddButtonDialog(
         )
     }
     var selectedColor by remember {
-        mutableStateOf(initialButton?.let { Color(it.color) } ?: SafeColors.firstOrNull() ?: Color.Gray)
+        mutableStateOf(initialButton?.let { toSafeColor(Color(it.color)) } ?: SafeColors.first())
     }
 
     var selectedTabIndex by remember {
@@ -798,9 +806,10 @@ fun EmptyCellPlaceholder(onClick: () -> Unit) {
             .height(80.dp),
         shape = RoundedCornerShape(8.dp),
         colors = IconButtonDefaults.outlinedIconButtonColors(
-            containerColor = Color(0xFFEEEEEE) // Light Gray
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        border = BorderStroke(1.dp, Color.Gray)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Icon(Icons.Default.Add, contentDescription = "Añadir Botón")
     }
