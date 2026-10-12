@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,9 +17,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.sindicato.aplicacionaccesible.R
 import com.sindicato.aplicacionaccesible.ui.sound.AppLanguage
 import com.sindicato.aplicacionaccesible.ui.theme.AppTheme
 import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
@@ -164,28 +172,11 @@ fun SettingsDialog(
                             Text("Más agudo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val pitchOptions = listOf(0.5f, 0.75f, 1.0f, 1.5f, 2.0f)
-                            pitchOptions.forEach { pitch ->
-                                val isSelected = currentPitch == pitch
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = { soundManagerViewModel.setPitch(pitch) },
-                                    label = { Text(text = "") },
-                                    shape = CircleShape,
-                                    modifier = Modifier.size(40.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                )
-                            }
-                        }
-                        
+                        PitchSelector(
+                            currentPitch = currentPitch,
+                            onPitchSelected = { soundManagerViewModel.setPitch(it) }
+                        )
+
                         Spacer(Modifier.height(24.dp))
                         
                         // VELOCIDAD (Speech Rate)
@@ -198,6 +189,50 @@ fun SettingsDialog(
                     }
                 }
             }
+        }
+    }
+}
+
+val pitchOptions = listOf(
+    0.5f to R.string.pitch_very_low,
+    0.75f to R.string.pitch_low,
+    1.0f to R.string.pitch_normal,
+    1.5f to R.string.pitch_high,
+    2.0f to R.string.pitch_very_high
+)
+
+@Composable
+fun PitchSelector(
+    currentPitch: Float,
+    onPitchSelected: (Float) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        pitchOptions.forEach { (pitch, labelRes) ->
+            val isSelected = currentPitch == pitch
+            val label = stringResource(labelRes)
+            Surface(
+                modifier = Modifier
+                    .size(48.dp)
+                    .selectable(
+                        selected = isSelected,
+                        role = Role.RadioButton,
+                        onClick = { onPitchSelected(pitch) }
+                    )
+                    .semantics { contentDescription = label }
+                    .testTag("pitch_$pitch"),
+                shape = CircleShape,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                border = BorderStroke(
+                    2.dp,
+                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                )
+            ) {}
         }
     }
 }

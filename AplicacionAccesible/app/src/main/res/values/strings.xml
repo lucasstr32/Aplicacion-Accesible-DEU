@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">AplicacionAccesible</string>
+
+    <!-- Frases rápidas -->
+    <string name="delete_phrase">Eliminar frase: %1$s</string>
+
+    <!-- Selector de tono -->
+    <string name="pitch_very_low">Tono muy grave</string>
+    <string name="pitch_low">Tono grave</string>
+    <string name="pitch_normal">Tono normal</string>
+    <string name="pitch_high">Tono agudo</string>
+    <string name="pitch_very_high">Tono muy agudo</string>
+
+    <!-- Diálogo de botón -->
+    <string name="preview_sound">Escuchar %1$s</string>
+    <string name="color_vermilion">Bermellón</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_yellow">Amarillo</string>
+    <string name="color_bluish_green">Verde azulado</string>
+    <string name="color_orange">Naranja</string>
+    <string name="color_reddish_purple">Púrpura rojizo</string>
 </resources>

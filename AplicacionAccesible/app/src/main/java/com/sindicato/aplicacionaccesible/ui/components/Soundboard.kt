@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -88,9 +90,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sindicato.aplicacionaccesible.R
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffect
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
@@ -328,6 +335,16 @@ val buttonColors = listOf(
     Color(0xFFFFCA28), Color(0xFFAB47BC), Color(0xFF26A69A)
 )
 
+// Nombres accesibles de SafeColors, en el mismo orden
+val safeColorNames = listOf(
+    R.string.color_vermilion,
+    R.string.color_blue,
+    R.string.color_yellow,
+    R.string.color_bluish_green,
+    R.string.color_orange,
+    R.string.color_reddish_purple
+)
+
 // Updated availableIcons list for non-verbal communication
 val availableIcons = listOf(
     // Essentials / Needs
@@ -471,12 +488,11 @@ fun AddButtonDialog(
                                                 onClick = {
                                                     // This plays the sound without closing the menu
                                                     soundManagerViewModel.previewSound(context, effect)
-                                                },
-                                                modifier = Modifier.size(32.dp)
+                                                }
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.PlayArrow,
-                                                    contentDescription = "Reproducir sonido",
+                                                    contentDescription = stringResource(R.string.preview_sound, effect.displayName),
                                                     tint = MaterialTheme.colorScheme.primary
                                                 )
                                             }
@@ -564,19 +580,27 @@ fun AddButtonDialog(
 
                 Text("Elegir Color", style = MaterialTheme.typography.labelMedium)
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectableGroup()
                 ) {
                     items(SafeColors.size) { index ->
                         val color = SafeColors[index]
+                        val colorName = stringResource(safeColorNames[index])
                         Surface(
                             modifier = Modifier
-                                .size(35.dp)
-                                .clickable { selectedColor = color },
+                                .size(48.dp)
+                                .selectable(
+                                    selected = selectedColor == color,
+                                    role = Role.RadioButton,
+                                    onClick = { selectedColor = color }
+                                )
+                                .semantics { contentDescription = colorName },
                             shape = CircleShape,
                             color = color,
                             border = if (selectedColor == color)
-                                BorderStroke(3.dp, Color.Black) else null
+                                BorderStroke(3.dp, MaterialTheme.colorScheme.onSurface) else null
                         ) {}
                     }
                 }

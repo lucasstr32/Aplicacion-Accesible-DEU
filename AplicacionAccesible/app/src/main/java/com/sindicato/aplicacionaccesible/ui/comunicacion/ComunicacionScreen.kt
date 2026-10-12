@@ -21,12 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sindicato.aplicacionaccesible.R
 import com.sindicato.aplicacionaccesible.data.PhraseEntity
 import com.sindicato.aplicacionaccesible.viewmodel.SoundManagerViewModel
 
@@ -292,27 +294,26 @@ fun QuickPhraseCard(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = phrase.text,
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .weight(1f)
+                    .padding(start = 8.dp, top = 4.dp, bottom = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(24.dp)
-            ) {
+            // IconButton ya garantiza un área táctil mínima de 48 dp
+            IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Eliminar",
-                    modifier = Modifier.size(14.dp),
+                    contentDescription = stringResource(R.string.delete_phrase, phrase.text),
+                    modifier = Modifier.size(18.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                 )
             }
