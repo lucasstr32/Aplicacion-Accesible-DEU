@@ -98,6 +98,15 @@ class SoundboardViewModel(
         }
     }
 
+    fun renameCurrentTemplate(newName: String) {
+        val template = _templates.getOrNull(currentTemplateIndex) ?: return
+        _templates[currentTemplateIndex] = template.copy(name = newName)
+
+        viewModelScope.launch {
+            templateRepository.renameTemplate(template.id, newName)
+        }
+    }
+
     fun deleteCurrentTemplate() {
         if (_templates.isNotEmpty()) {
             val templateId = _templates[currentTemplateIndex].id

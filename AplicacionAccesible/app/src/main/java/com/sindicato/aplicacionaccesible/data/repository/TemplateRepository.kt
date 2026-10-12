@@ -92,6 +92,10 @@ class TemplateRepository(
         }
     }
 
+    suspend fun renameTemplate(templateId: String, name: String) {
+        templateDao.renameTemplate(templateId, name)
+    }
+
     suspend fun deleteTemplateFromDb(templateId: String){
         templateDao.deleteTemplateById(templateId)
 

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -80,6 +81,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -87,11 +89,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -199,10 +209,28 @@ fun SoundGrid(
         soundManagerViewModel = soundManagerViewModel
     )
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Anuncia a TalkBack la entrada y salida del modo edición
+    val view = LocalView.current
+    val enteredText = stringResource(R.string.edit_mode_banner)
+    val exitedText = stringResource(R.string.edit_mode_exited)
+    var previousEditMode by remember { mutableStateOf(soundboardViewModel.isEditMode) }
+    LaunchedEffect(soundboardViewModel.isEditMode) {
+        if (previousEditMode != soundboardViewModel.isEditMode) {
+            @Suppress("DEPRECATION")
+            view.announceForAccessibility(if (soundboardViewModel.isEditMode) enteredText else exitedText)
+            previousEditMode = soundboardViewModel.isEditMode
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (soundboardViewModel.isEditMode) {
+            EditModeBanner()
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(soundboardViewModel.columnCount),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -214,17 +242,14 @@ fun SoundGrid(
                     SoundButtonItem(
                         button = buttonAtPosition,
                         isColorblindMode = isColorblindMode,
-                        onLongClick = {
+                        isEditMode = soundboardViewModel.isEditMode,
+                        onClick = {
                             if (soundboardViewModel.isEditMode) {
                                 editingButton = buttonAtPosition
-                            }
-                        },
-                        onClick = {
-                            if (!soundboardViewModel.isEditMode) {
+                            } else {
                                 soundManagerViewModel.playSound(context, buttonAtPosition)
                             }
-                        },
-                        soundboardViewModel = soundboardViewModel
+                        }
                     )
                 } else if (soundboardViewModel.isEditMode) {
                     EmptyCellPlaceholder(onClick = { showDialogAtPosition = index })
@@ -232,36 +257,33 @@ fun SoundGrid(
             }
         }
 
-        // Mensaje flotante
-        if (soundboardViewModel.isEditMode) {
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                tonalElevation = 6.dp,
-                shadowElevation = 8.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Mantén presionado un botón para modificarlo",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
+    }
+}
+
+@Composable
+fun EditModeBanner() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.edit_mode_banner),
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
@@ -271,15 +293,13 @@ fun SoundGrid(
 fun SoundButtonItem(
     button: SoundButton,
     isColorblindMode: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    soundboardViewModel: SoundboardViewModel
+    isEditMode: Boolean,
+    onClick: () -> Unit
 ) {
     val backgroundColor = toSafeColor(Color(button.color))
     val contentColor = getContrastColor(backgroundColor)
-
-    // Aplicar transparencia en modo edición
-    val alpha = if (soundboardViewModel.isEditMode) 0.5f else 1f
+    val shape = RoundedCornerShape(8.dp)
+    val editLabel = stringResource(R.string.edit_button, button.name)
 
     Surface(
         modifier = Modifier
@@ -287,19 +307,54 @@ fun SoundButtonItem(
             .height(80.dp)
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
+                // En modo edición la pulsación larga también abre la edición
+                onLongClick = if (isEditMode) onClick else null
+            )
+            .then(
+                if (isEditMode) Modifier.drawWithContent {
+                    drawContent()
+                    // Borde discontinuo como señal de modo edición
+                    val stroke = 3.dp.toPx()
+                    drawRoundRect(
+                        color = contentColor,
+                        topLeft = Offset(stroke / 2, stroke / 2),
+                        size = Size(size.width - stroke, size.height - stroke),
+                        cornerRadius = CornerRadius(8.dp.toPx()),
+                        style = Stroke(
+                            width = stroke,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f))
+                        )
+                    )
+                } else Modifier
             ),
-        shape = RoundedCornerShape(8.dp),
-        color = backgroundColor.copy(alpha = alpha),
-        contentColor = contentColor.copy(alpha = alpha),
+        shape = shape,
+        color = backgroundColor,
+        contentColor = contentColor,
         tonalElevation = 4.dp,
-        border = if (isColorblindMode) BorderStroke(2.dp, contentColor.copy(alpha = alpha)) else null
+        border = if (isColorblindMode && !isEditMode) BorderStroke(2.dp, contentColor) else null
     ) {
         Box(contentAlignment = Alignment.Center) {
 
+            if (isEditMode) {
+                // Indicador decorativo; el botón completo expone «Editar [nombre]»
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .size(16.dp)
+                )
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .then(
+                        if (isEditMode) Modifier.clearAndSetSemantics { contentDescription = editLabel }
+                        else Modifier
+                    )
             ) {
                 Icon(
                     imageVector = availableIcons.getOrNull(button.iconRes) ?: Icons.Default.MusicNote,
@@ -653,8 +708,13 @@ fun AddButtonDialog(
 
         dismissButton = {
             if (initialButton != null) {
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
+                TextButton(
+                    onClick = onDelete,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.delete))
                 }
             }
             TextButton(onClick = onDismiss) {
@@ -670,6 +730,41 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var newTemplateName by remember { mutableStateOf("") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+
+    if (showRenameDialog) {
+        val template = soundboardViewModel.templates.getOrNull(soundboardViewModel.currentTemplateIndex)
+        var renamedName by remember { mutableStateOf(template?.name ?: "") }
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = { Text(stringResource(R.string.rename_template_title)) },
+            text = {
+                TextField(
+                    value = renamedName,
+                    onValueChange = { renamedName = it },
+                    label = { Text("Nombre de la Plantilla") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (renamedName.isNotBlank()) {
+                            soundboardViewModel.renameCurrentTemplate(renamedName.trim())
+                            showRenameDialog = false
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     if (showDialog) {
         AlertDialog(
@@ -723,7 +818,7 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
                         soundboardViewModel.toggleEditMode()
                         showDeleteConfirm = false
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Borrar")
                 }
@@ -738,8 +833,11 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
 
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir Plantilla")
+            // No se puede crear otra plantilla mientras se edita una
+            if (!soundboardViewModel.isEditMode) {
+                IconButton(onClick = { showDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Añadir Plantilla")
+                }
             }
         },
         title = {
@@ -754,8 +852,15 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
                         item {
                             FilterChip(
                                 selected = true,
-                                onClick = { },
-                                label = { Text(template.name) }
+                                onClick = { showRenameDialog = true },
+                                label = { Text(template.name) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = stringResource(R.string.rename_template),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             )
                         }
                     }
@@ -773,16 +878,14 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
         actions = {
             if (soundboardViewModel.isEditMode) {
                 IconButton(onClick = { showDeleteConfirm = true }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Borrar Plantilla", tint = Color.Red)
+                    Icon(Icons.Default.Delete, contentDescription = "Borrar Plantilla", tint = MaterialTheme.colorScheme.error)
                 }
                 Button(
                     onClick = { soundboardViewModel.toggleEditMode() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFC8E6C9), // Light Green
-                        contentColor = Color.Black
-                    ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
+                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
                     Text("Aceptar")
                 }
             } else {

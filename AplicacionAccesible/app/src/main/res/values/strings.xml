@@ -15,6 +15,15 @@
     <string name="pitch_high">Tono agudo</string>
     <string name="pitch_very_high">Tono muy agudo</string>
 
+    <!-- Modo edición de Sonidos -->
+    <string name="edit_mode_banner">Modo edición. Toca un botón para modificarlo.</string>
+    <string name="edit_mode_exited">Modo edición terminado</string>
+    <string name="edit_button">Editar %1$s</string>
+    <string name="rename_template">Cambiar nombre de la plantilla</string>
+    <string name="rename_template_title">Cambiar nombre</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+
     <!-- Diálogo de botón -->
     <string name="preview_sound">Escuchar %1$s</string>
     <string name="color_vermilion">Bermellón</string>

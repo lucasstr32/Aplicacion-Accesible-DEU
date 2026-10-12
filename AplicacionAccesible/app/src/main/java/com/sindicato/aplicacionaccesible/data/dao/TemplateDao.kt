@@ -23,6 +23,9 @@ interface TemplateDao {
     @Query("DELETE FROM templates WHERE id = :templateId")
     suspend fun deleteTemplateById(templateId: String)
 
+    @Query("UPDATE templates SET name = :name WHERE id = :templateId")
+    suspend fun renameTemplate(templateId: String, name: String)
+
     @Query("SELECT COUNT(*) FROM templates")
     suspend fun getTemplateCount(): Int
 
