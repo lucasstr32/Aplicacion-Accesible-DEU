@@ -38,6 +38,10 @@ class SoundManagerViewModel(
     private val _selectedLanguage = MutableStateFlow(AppLanguage.SPANISH)
     val selectedLanguage = _selectedLanguage.asStateFlow()
 
+    // null = voz predeterminada del idioma
+    private val _selectedVoice = MutableStateFlow<String?>(null)
+    val selectedVoice: StateFlow<String?> = _selectedVoice.asStateFlow()
+
     init {
         // Aplica los ajustes guardados; TTSManager los conserva hasta que el motor esté listo
         viewModelScope.launch {
@@ -45,9 +49,11 @@ class SoundManagerViewModel(
                 _ttsPitch.value = settings.pitch
                 _ttsSpeechRate.value = settings.speechRate
                 _selectedLanguage.value = settings.language
+                _selectedVoice.value = settings.voiceName
                 TTSManager.setPitch(settings.pitch)
                 TTSManager.setSpeechRate(settings.speechRate)
                 TTSManager.applyLanguage(settings.language)
+                TTSManager.setVoice(settings.voiceName)
             }
         }
     }
@@ -92,8 +98,28 @@ class SoundManagerViewModel(
     fun updateLanguage(language: AppLanguage) {
         _selectedLanguage.value = language
         // Apply directly to the audio engine
+        // Cada voz pertenece a un idioma: al cambiarlo se vuelve a la predeterminada
+        _selectedVoice.value = null
+        TTSManager.setVoice(null)
         TTSManager.applyLanguage(language)
-        viewModelScope.launch { settingsRepository.setLanguage(language) }
+        viewModelScope.launch {
+            settingsRepository.setVoice(null)
+            settingsRepository.setLanguage(language)
+        }
+    }
+
+    fun selectVoice(name: String?) {
+        _selectedVoice.value = name
+        TTSManager.setVoice(name)
+        viewModelScope.launch { settingsRepository.setVoice(name) }
+    }
+
+    /**
+     * Elige la voz y dice una frase de prueba en el idioma actual.
+     */
+    fun previewVoice(name: String?) {
+        selectVoice(name)
+        TTSManager.speak(_selectedLanguage.value.sampleText)
     }
 
 //    fun getSpeechLanguage(): String {

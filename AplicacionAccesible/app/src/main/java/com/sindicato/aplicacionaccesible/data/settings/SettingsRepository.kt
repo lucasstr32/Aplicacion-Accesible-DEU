@@ -27,7 +27,8 @@ data class AppSettings(
     val language: AppLanguage = AppLanguage.SPANISH,
     val pitch: Float = 1.0f,
     val speechRate: Float = 1.0f,
-    val columnCount: Int = 2
+    val columnCount: Int = 2,
+    val voiceName: String? = null
 )
 
 object SettingsKeys {
@@ -36,6 +37,7 @@ object SettingsKeys {
     val PITCH = floatPreferencesKey("pitch")
     val SPEECH_RATE = floatPreferencesKey("speech_rate")
     val COLUMN_COUNT = intPreferencesKey("column_count")
+    val VOICE = stringPreferencesKey("voice")
 }
 
 /**
@@ -50,7 +52,8 @@ fun Preferences.toAppSettings(): AppSettings {
             ?: defaults.language,
         pitch = this[SettingsKeys.PITCH] ?: defaults.pitch,
         speechRate = this[SettingsKeys.SPEECH_RATE] ?: defaults.speechRate,
-        columnCount = this[SettingsKeys.COLUMN_COUNT]?.takeIf { it in 2..4 } ?: defaults.columnCount
+        columnCount = this[SettingsKeys.COLUMN_COUNT]?.takeIf { it in 2..4 } ?: defaults.columnCount,
+        voiceName = this[SettingsKeys.VOICE]
     )
 }
 
@@ -76,6 +79,12 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setSpeechRate(rate: Float) {
         dataStore.edit { it[SettingsKeys.SPEECH_RATE] = rate }
+    }
+
+    suspend fun setVoice(name: String?) {
+        dataStore.edit {
+            if (name == null) it.remove(SettingsKeys.VOICE) else it[SettingsKeys.VOICE] = name
+        }
     }
 
     suspend fun setColumnCount(count: Int) {

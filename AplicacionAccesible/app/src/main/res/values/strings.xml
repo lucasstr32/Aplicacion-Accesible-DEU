@@ -33,6 +33,13 @@
     <string name="save">Guardar</string>
     <string name="delete">Eliminar</string>
 
+    <!-- Selector de voz -->
+    <string name="voice_title">Voz</string>
+    <string name="voice_loading">Cargando voces…</string>
+    <string name="voice_default">Predeterminada</string>
+    <string name="voice_missing">No hay voces instaladas para %1$s. Puedes descargarlas desde la configuración de voz del sistema.</string>
+    <string name="voice_open_settings">Abrir configuración de voz</string>
+
     <!-- Diálogo de botón -->
     <string name="preview_sound">Escuchar %1$s</string>
     <string name="color_vermilion">Bermellón</string>

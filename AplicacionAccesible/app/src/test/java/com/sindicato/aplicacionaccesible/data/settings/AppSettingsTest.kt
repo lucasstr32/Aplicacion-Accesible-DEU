@@ -24,10 +24,14 @@ class AppSettingsTest {
             SettingsKeys.LANGUAGE to AppLanguage.ENGLISH.name,
             SettingsKeys.PITCH to 1.5f,
             SettingsKeys.SPEECH_RATE to 0.8f,
-            SettingsKeys.COLUMN_COUNT to 3
+            SettingsKeys.COLUMN_COUNT to 3,
+            SettingsKeys.VOICE to "es-es-x-eea-local"
         ).toAppSettings()
 
-        assertEquals(AppSettings(AppTheme.COLORBLIND, AppLanguage.ENGLISH, 1.5f, 0.8f, 3), settings)
+        assertEquals(
+            AppSettings(AppTheme.COLORBLIND, AppLanguage.ENGLISH, 1.5f, 0.8f, 3, "es-es-x-eea-local"),
+            settings
+        )
     }
 
     @Test
