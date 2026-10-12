@@ -40,6 +40,11 @@ android {
     }
 }
 
+// Exporta el esquema de Room para versionarlo y poder escribir/testear migraciones
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
