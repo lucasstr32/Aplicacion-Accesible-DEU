@@ -58,7 +58,7 @@ class ButtonRepository(
             soundEffect = (button as? SoundEffectButton)?.soundEffect?.name,
             ttsText = (button as? TTSButton)?.ttsText
         )
-        buttonDao.insertButton(entity)
+        buttonDao.replaceButton(entity)
     }
 
 

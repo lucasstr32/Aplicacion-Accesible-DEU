@@ -182,18 +182,14 @@ class SoundboardViewModel(
 //        }
 //    }
 
-    fun deleteButton(button: SoundButton) {
-        deleteButtonAtPosition(button.gridPosition)
-        viewModelScope.launch {
-            buttonRepository.deleteButton(
-                currentTemplateIndex.toString(),
-                button.gridPosition)
-        }
-    }
     fun deleteButtonAtPosition(position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position }
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
+
+        viewModelScope.launch {
+            buttonRepository.deleteButton(currentTemplate.id, position)
+        }
     }
 
 //    fun previewSound(context: Context, soundEffect: SoundEffect) {
