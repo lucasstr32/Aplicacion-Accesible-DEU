@@ -13,23 +13,41 @@ import com.sindicato.aplicacionaccesible.data.PhraseEntity
 import com.sindicato.aplicacionaccesible.ui.sound.TTSManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 
-class ComunicacionViewModel(var context: Context) : ViewModel(), RecognitionListener {
+/**
+ * Indica si [text] ya está entre [phrases], sin distinguir mayúsculas ni
+ * espacios en los extremos.
+ */
+fun isDuplicatePhrase(text: String, phrases: List<PhraseEntity>): Boolean {
+    val normalized = text.trim()
+    return phrases.any { it.text.trim().equals(normalized, ignoreCase = true) }
+}
+
+class ComunicacionViewModel(context: Context) : ViewModel(), RecognitionListener {
+
+    // Se usa el contexto de la aplicación para no retener la Activity
+    private val context: Context = context.applicationContext
 
     private val phraseDao = AppDatabase.getDatabase(context).phraseDao()
     private val _uiState = MutableStateFlow(ComunicacionUiState())
     val uiState: StateFlow<ComunicacionUiState> = _uiState.asStateFlow()
 
-    //private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
 
-
-
     init {
-        //setupTts()
         setupSpeechRecognizer()
         observePhrases()
+        observeTtsProgress()
+    }
+
+    private fun observeTtsProgress() {
+        viewModelScope.launch {
+            TTSManager.isSpeaking.collect { speaking ->
+                _uiState.update {
+                    it.copy(ttsStatus = if (speaking) TtsStatus.REPRODUCIENDO else TtsStatus.IDLE)
+                }
+            }
+        }
     }
 
     private fun observePhrases() {
@@ -40,13 +58,18 @@ class ComunicacionViewModel(var context: Context) : ViewModel(), RecognitionList
         }
     }
 
-    fun saveCurrentTtsAsPhrase() {
-        val text = _uiState.value.ttsText
-        if (text.isNotBlank()) {
-            viewModelScope.launch {
-                phraseDao.insertPhrase(PhraseEntity(text = text))
-            }
+    /**
+     * Guarda el texto actual como frase rápida.
+     * Devuelve false si ya existía una frase igual.
+     */
+    fun saveCurrentTtsAsPhrase(): Boolean {
+        val text = _uiState.value.ttsText.trim()
+        if (text.isBlank()) return false
+        if (isDuplicatePhrase(text, _uiState.value.savedPhrases)) return false
+        viewModelScope.launch {
+            phraseDao.insertPhrase(PhraseEntity(text = text))
         }
+        return true
     }
 
     fun deletePhrase(phrase: PhraseEntity) {
@@ -54,36 +77,6 @@ class ComunicacionViewModel(var context: Context) : ViewModel(), RecognitionList
             phraseDao.deletePhrase(phrase)
         }
     }
-
-//    private fun setupTts() {
-//        _uiState.update { it.copy(ttsStatus = TtsStatus.CARGANDO) }
-//        tts = TextToSpeech(context) { status ->
-//            if (status == TextToSpeech.SUCCESS) {
-//                TTSManager.language = Locale.getDefault()
-//                TTSManager.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-//                    override fun onStart(utteranceId: String?) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.REPRODUCIENDO) }
-//                    }
-//
-//                    override fun onDone(utteranceId: String?) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
-//                    }
-//
-//                    @Deprecated("Deprecated in Java")
-//                    override fun onError(utteranceId: String?) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS") }
-//                    }
-//
-//                    override fun onError(utteranceId: String?, errorCode: Int) {
-//                        _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "Error en TTS: $errorCode") }
-//                    }
-//                })
-//                _uiState.update { it.copy(ttsStatus = TtsStatus.IDLE) }
-//            } else {
-//                _uiState.update { it.copy(ttsStatus = TtsStatus.ERROR, errorMessage = "No se pudo inicializar TTS") }
-//            }
-//        }
-//    }
 
     private fun setupSpeechRecognizer() {
         if (SpeechRecognizer.isRecognitionAvailable(context)) {
@@ -116,7 +109,7 @@ class ComunicacionViewModel(var context: Context) : ViewModel(), RecognitionList
     fun startListening() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, TTSManager.currentLanguage.locale.toLanguageTag())
         }
         speechRecognizer?.startListening(intent)
         _uiState.update { it.copy(sttStatus = SttStatus.ESCUCHANDO) }
@@ -162,31 +155,9 @@ class ComunicacionViewModel(var context: Context) : ViewModel(), RecognitionList
     override fun onPartialResults(partialResults: Bundle?) {}
     override fun onEvent(eventType: Int, params: Bundle?) {}
 
-//    override fun onCleared() {
-//        tts?.stop()
-//        tts?.shutdown()
-//        speechRecognizer?.destroy()
-//        super.onCleared()
-//    }
-//
-//
-//    fun updateLanguage(language: String) {
-//        val locale = if (language == "Español") Locale("es", "ES") else Locale.ENGLISH
-//        TTSManager.language = locale
-//    }
-//
-//    fun getLanguage(): String {
-//        return TTSManager.language.toString()
-//    }
-//
-//    fun setSpeechRate(speed: Float){
-//        TTSManager.setSpeechRate(speed)
-//        _ttsSpeechRate.value = speed
-//    }
-//
-//
-//    fun setPitch(pitch: Float){
-//        TTSManager.setPitch(pitch)
-//        _ttsPitch.value = pitch
-//    }
+    override fun onCleared() {
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+        super.onCleared()
+    }
 }

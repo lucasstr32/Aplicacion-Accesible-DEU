@@ -1,26 +1,24 @@
 package com.sindicato.aplicacionaccesible
 
-import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CalendarViewMonth
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SignLanguage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +31,7 @@ import com.sindicato.aplicacionaccesible.data.AppDatabase
 import com.sindicato.aplicacionaccesible.data.DatabaseSeeder
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
+import com.sindicato.aplicacionaccesible.data.settings.SettingsRepository
 import com.sindicato.aplicacionaccesible.ui.components.SettingsDialog
 import com.sindicato.aplicacionaccesible.ui.components.Soundboard
 import com.sindicato.aplicacionaccesible.ui.comunicacion.ComunicacionScreen
@@ -60,8 +59,6 @@ class MainActivity : ComponentActivity() {
 
 
 
-    @SuppressLint("ViewModelConstructorInComposable")
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -81,6 +78,7 @@ class MainActivity : ComponentActivity() {
 
         templateRepository = TemplateRepository(database.templateDao())
         buttonRepository = ButtonRepository(database.buttonDao())
+        val settingsRepository = SettingsRepository(applicationContext)
 
 
 
@@ -89,20 +87,36 @@ class MainActivity : ComponentActivity() {
             val soundboardViewModel: SoundboardViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                        return SoundboardViewModel(templateRepository, buttonRepository) as T
+                        return SoundboardViewModel(templateRepository, buttonRepository, settingsRepository) as T
                     }
                 }
             )
-            val soundManagerViewModel = SoundManagerViewModel()
-            val comunicacionViewModel = ComunicacionViewModel(this)
+            // viewModel() conserva las instancias entre recomposiciones (p. ej. al cambiar
+            // el tema) y rotaciones; antes se creaban de nuevo y se perdían los ajustes.
+            val soundManagerViewModel: SoundManagerViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return SoundManagerViewModel(settingsRepository) as T
+                    }
+                }
+            )
+            val comunicacionViewModel: ComunicacionViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return ComunicacionViewModel(applicationContext) as T
+                    }
+                }
+            )
 
-            val currentTheme by soundboardViewModel.appTheme.collectAsState()
+            val savedTheme by soundboardViewModel.appTheme.collectAsState()
+            // Mientras no se elija un tema, se sigue el claro/oscuro del sistema
+            val currentTheme = savedTheme ?: if (isSystemInDarkTheme()) AppTheme.DARK else AppTheme.LIGHT
 
             AplicacionAccesibleTheme(appTheme = currentTheme) {
                 MainScreen(
                     soundboardViewModel = soundboardViewModel,
                     soundManagerViewModel = soundManagerViewModel,
-                    comunicacionViewModel = ComunicacionViewModel(this)
+                    comunicacionViewModel = comunicacionViewModel
                 )
             }
         }
@@ -115,7 +129,6 @@ class MainActivity : ComponentActivity() {
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -128,7 +141,7 @@ fun MainScreen(
     var showSettings by remember { mutableStateOf(false) }
 
     val helpContent = when (selectedTab) {
-        0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas desde el menú superior (icono de tres líneas)."
+        0 -> "Sonidos" to "Esta pantalla te permite reproducir sonidos comunes. Toca cualquier botón para escuchar el sonido correspondiente. Puedes cambiar el número de columnas con el botón de columnas del menú superior."
         1 -> "Comunicación" to "Aquí tienes dos modos: 'Texto a Voz' para escribir lo que quieres que la app diga, y 'Voz a Texto' para que la app transcriba lo que hablas. Cambia entre ellos usando el selector superior."
         else -> "Lenguaje de Señas" to "Explora palabras en lenguaje de señas. Toca una palabra en la lista para ver su representación visual. Puedes volver a la lista usando el botón de retroceso en el detalle."
     }
@@ -143,7 +156,7 @@ fun MainScreen(
             },
             title = {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Help, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.Help, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Ayuda: ${helpContent.first}")
                 }
@@ -173,6 +186,12 @@ fun MainScreen(
                     ) 
                 },
                 actions = {
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Help,
+                            contentDescription = stringResource(R.string.help)
+                        )
+                    }
                     IconButton(onClick = { showSettings = true }) {
                         Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
@@ -182,7 +201,7 @@ fun MainScreen(
                         IconButton(onClick = {
                             val columnCount = soundboardViewModel.columnCount
                             val nextCols = if (columnCount >= 4) 2 else columnCount + 1
-                            soundboardViewModel.columnCount = nextCols
+                            soundboardViewModel.updateColumnCount(nextCols)
                         }) {
                             Icon(Icons.Default.CalendarViewMonth, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
                         }
@@ -195,33 +214,20 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.PlayArrow, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null) },
                     label = { Text("Sonidos") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null) },
                     label = { Text("Comunicación") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Menu, contentDescription = null) },
+                    icon = { Icon(Icons.Default.SignLanguage, contentDescription = null) },
                     label = { Text("Señas") }
-                )
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showHelpDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Help,
-                    contentDescription = "Botón de Ayuda"
                 )
             }
         }
@@ -239,13 +245,14 @@ fun MainScreen(
                     comunicacionViewModel,
                     soundManagerViewModel
                 )
-                2 -> SignLanguageGrid()
+                2 -> SignLanguageGrid(
+                    isColorblindMode = soundboardViewModel.appTheme.collectAsState().value == AppTheme.COLORBLIND
+                )
             }
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(
     name = "Small phone",
     device = Devices.PIXEL_4A,

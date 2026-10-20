@@ -1,8 +1,6 @@
 package com.sindicato.aplicacionaccesible.ui.theme
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
@@ -45,9 +43,45 @@ val SafePurple = Color(0xFFCC79A7) // Reddish Purple
 val SafeColors = listOf(SafeRed, SafeBlue, SafeYellow, SafeGreen, SafeOrange, SafePurple)
 
 
-@Composable
+/**
+ * Luminancia relativa según WCAG 2.x (componentes sRGB linealizados).
+ */
+fun relativeLuminance(color: Color): Double {
+    fun channel(c: Float): Double {
+        val v = c.toDouble()
+        return if (v <= 0.03928) v / 12.92 else Math.pow((v + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue)
+}
+
+/**
+ * Relación de contraste WCAG entre dos colores (de 1:1 a 21:1).
+ */
+fun contrastRatio(first: Color, second: Color): Double {
+    val l1 = relativeLuminance(first)
+    val l2 = relativeLuminance(second)
+    return (maxOf(l1, l2) + 0.05) / (minOf(l1, l2) + 0.05)
+}
+
+/**
+ * Devuelve negro o blanco, el que tenga mayor contraste con el fondo.
+ */
 fun getContrastColor(backgroundColor: Color): Color {
-    // If luminance > 0.5, the color is "light", so use black text.
-    // Otherwise, use white.
-    return if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
+    val withBlack = contrastRatio(backgroundColor, Color.Black)
+    val withWhite = contrastRatio(backgroundColor, Color.White)
+    return if (withBlack >= withWhite) Color.Black else Color.White
+}
+
+/**
+ * Devuelve el color de SafeColors más cercano, para que todos los botones
+ * usen la misma paleta aunque se hayan guardado con otro color.
+ */
+fun toSafeColor(color: Color): Color {
+    if (color in SafeColors) return color
+    return SafeColors.minBy { safe ->
+        val dr = safe.red - color.red
+        val dg = safe.green - color.green
+        val db = safe.blue - color.blue
+        dr * dr + dg * dg + db * db
+    }
 }

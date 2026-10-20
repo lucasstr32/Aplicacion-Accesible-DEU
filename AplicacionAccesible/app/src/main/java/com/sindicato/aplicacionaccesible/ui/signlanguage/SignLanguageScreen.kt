@@ -1,12 +1,15 @@
 package com.sindicato.aplicacionaccesible.ui.signlanguage
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.SignLanguage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,44 +19,61 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sindicato.aplicacionaccesible.R
 import com.sindicato.aplicacionaccesible.data.SignLanguageEntity
+import com.sindicato.aplicacionaccesible.ui.theme.SafeColors
+import com.sindicato.aplicacionaccesible.ui.theme.getContrastColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignLanguageGrid(viewModel: SignLanguageViewModel = viewModel()) {
+fun SignLanguageGrid(
+    isColorblindMode: Boolean = false,
+    viewModel: SignLanguageViewModel = viewModel()
+) {
     val signItems by viewModel.signItems.collectAsState()
     var selectedItem by rememberSaveable { mutableStateOf<SignLanguageEntity?>(null) }
     
     if (selectedItem == null) {
-        // Vista de Grilla con Texto (Actuando como iconos)
+        // Misma forma, tamaño, tipografía y paleta que los botones de Sonidos
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(8.dp),
+            contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(signItems) { item ->
-                Card(
+            itemsIndexed(signItems) { index, item ->
+                val backgroundColor = SafeColors[index % SafeColors.size]
+                val contentColor = getContrastColor(backgroundColor)
+                Surface(
                     onClick = { selectedItem = item },
                     modifier = Modifier
-                        .height(100.dp)
+                        .height(80.dp)
                         .fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+                    shape = RoundedCornerShape(8.dp),
+                    color = backgroundColor,
+                    contentColor = contentColor,
+                    tonalElevation = 4.dp,
+                    border = if (isColorblindMode) BorderStroke(2.dp, contentColor) else null
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.SignLanguage,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
                         Text(
                             text = item.word,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.labelLarge,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(8.dp)
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

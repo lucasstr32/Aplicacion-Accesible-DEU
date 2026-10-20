@@ -9,7 +9,14 @@ enum class SoundEffect(val id:Int, val displayName: String, val resourceId: Int)
     MALE_SIGH(4, "Suspiro masculino", R.raw.male_sigh),
     GASP(5, "Sorpresa", R.raw.gasp),
     MALE_OUCH(6, "OUCH masculino", R.raw.ouch),
-    MALE_THINKING(7, "Pensado masculino", R.raw.thinking_male);
+    MALE_THINKING(7, "Pensado masculino", R.raw.thinking_male),
+    ALARM(8, "Alarma", R.raw.alarm),
+    ALARM_CLOCK(9, "Despertador", R.raw.alarm_clock),
+    HORN(10, "Bocina", R.raw.horn),
+    DOORBELL(11, "Timbre", R.raw.doorbell),
+    WHISTLE(12, "Silbato", R.raw.whistle),
+    APPLAUSE(13, "Aplausos", R.raw.applause),
+    KNOCK(14, "Golpes en la puerta", R.raw.knock);
 
     companion object {
         fun fromDisplayName(name: String?): SoundEffect {

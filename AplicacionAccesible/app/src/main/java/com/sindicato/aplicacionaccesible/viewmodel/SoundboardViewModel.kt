@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.sindicato.aplicacionaccesible.data.repository.ButtonRepository
 import com.sindicato.aplicacionaccesible.data.repository.TemplateRepository
+import com.sindicato.aplicacionaccesible.data.settings.SettingsRepository
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.SoundEffectButton
 import com.sindicato.aplicacionaccesible.ui.screens.soundgrid.TTSButton
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,49 +27,39 @@ import kotlinx.coroutines.launch
 
 class SoundboardViewModel(
     val templateRepository: TemplateRepository,
-    val buttonRepository: ButtonRepository
+    val buttonRepository: ButtonRepository,
+    private val settingsRepository: SettingsRepository
 ): ViewModel() {
 
     private val _templates = mutableStateListOf<Template>()
     val templates: List<Template> = _templates
     var currentTemplateIndex by mutableIntStateOf(0)
     var isEditMode by mutableStateOf(false)
+
+    // true cuando terminó la carga inicial de plantillas desde la base
+    var templatesLoaded by mutableStateOf(false)
+        private set
     var columnCount by mutableIntStateOf(2)
+        private set
 
-    // Configuración de la aplicación (Global)
-    //var appTheme by mutableStateOf(AppTheme.LIGHT)
-//    var appLanguage by mutableStateOf("Español") // "Español", "Inglés"
-//    var ttsPitch by mutableFloatStateOf(1.0f)
-//    var ttsSpeed by mutableFloatStateOf(1.0f)
-
-//    private var mediaPlayer: MediaPlayer? = null
-//    //private var tts: TextToSpeech? = null
-//    private var isTtsReady = false
-
-    private val _appTheme = MutableStateFlow(AppTheme.LIGHT)
-    val appTheme: StateFlow<AppTheme> = _appTheme.asStateFlow()
-
-
-
+    // null = la persona no eligió tema: se sigue el del sistema
+    private val _appTheme = MutableStateFlow<AppTheme?>(null)
+    val appTheme: StateFlow<AppTheme?> = _appTheme.asStateFlow()
 
     init {
         loadTemplatesFromDb()
+        viewModelScope.launch {
+            settingsRepository.settings.collect { settings ->
+                _appTheme.value = settings.theme
+                columnCount = settings.columnCount
+            }
+        }
     }
 
-//    private fun initTts(context: Context) {
-//        if (tts == null) {
-//            tts = TextToSpeech(context.applicationContext) { status ->
-//                if (status == TextToSpeech.SUCCESS) {
-//                    updateTtsSettings()
-//                    isTtsReady = true
-//                }
-//            }
-//        } else if (isTtsReady) {
-//            updateTtsSettings()
-//        }
-//    }
-
-
+    fun updateColumnCount(count: Int) {
+        columnCount = count
+        viewModelScope.launch { settingsRepository.setColumnCount(count) }
+    }
 
     fun addTemplate(name: String) {
         val template = Template(name = name)
@@ -82,19 +73,31 @@ class SoundboardViewModel(
         }
     }
 
-
     private fun loadTemplatesFromDb() {
         viewModelScope.launch {
             try {
                 val dbTemplates = templateRepository.getAllTemplates()
+                // Conserva las plantillas creadas mientras se leía la base
+                val addedMeanwhile = _templates.filter { local -> dbTemplates.none { it.id == local.id } }
                 _templates.clear()
-                _templates.addAll(dbTemplates)
+                _templates.addAll(dbTemplates + addedMeanwhile)
 
                 // Log to verify info is arriving
                 Log.d("Templates", "Loaded ${dbTemplates.size} templates from DB")
             } catch (e: Exception) {
                 Log.e("Templates", "Error loading templates", e)
+            } finally {
+                templatesLoaded = true
             }
+        }
+    }
+
+    fun renameCurrentTemplate(newName: String) {
+        val template = _templates.getOrNull(currentTemplateIndex) ?: return
+        _templates[currentTemplateIndex] = template.copy(name = newName)
+
+        viewModelScope.launch {
+            templateRepository.renameTemplate(template.id, newName)
         }
     }
 
@@ -164,45 +167,15 @@ class SoundboardViewModel(
         }
     }
 
-//    fun playSound(context: Context, button: SoundButton) {
-//        if (button.ttsText != null) {
-//            Log.d("TTSManager", "Reproduciendo ${button.ttsText}")
-//
-////            initTts(context)
-////            if (isTtsReady) {
-////                updateTtsSettings()
-////                tts?.speak(button.ttsText, TextToSpeech.QUEUE_FLUSH, null, null)
-////            }
-//            TTSManager.speak(button.ttsText)
-//        } else if (button.soundEffect != null) {
-//            mediaPlayer?.stop()
-//            mediaPlayer?.release()
-//            mediaPlayer = MediaPlayer.create(context, button.soundEffect.resourceId)
-//            mediaPlayer?.start()
-//        }
-//    }
-
-    fun deleteButton(button: SoundButton) {
-        deleteButtonAtPosition(button.gridPosition)
-        viewModelScope.launch {
-            buttonRepository.deleteButton(
-                currentTemplateIndex.toString(),
-                button.gridPosition)
-        }
-    }
     fun deleteButtonAtPosition(position: Int) {
         val currentTemplate = _templates.getOrNull(currentTemplateIndex) ?: return
         val updatedButtons = currentTemplate.buttons.filter { it.gridPosition != position }
         _templates[currentTemplateIndex] = currentTemplate.copy(buttons = updatedButtons)
+
+        viewModelScope.launch {
+            buttonRepository.deleteButton(currentTemplate.id, position)
+        }
     }
-
-//    fun previewSound(context: Context, soundEffect: SoundEffect) {
-//        mediaPlayer?.stop()
-//        mediaPlayer?.release()
-//        mediaPlayer = MediaPlayer.create(context, soundEffect.resourceId)
-//        mediaPlayer?.start()
-//    }
-
 
     fun updateTTSButton(
         button: SoundButton,
@@ -269,16 +242,8 @@ class SoundboardViewModel(
     fun setAppTheme(newTheme: AppTheme) {
 
         _appTheme.value = newTheme
+        viewModelScope.launch { settingsRepository.setTheme(newTheme) }
     }
 
-
-
-
-//    override fun onCleared() {
-//        super.onCleared()
-//        mediaPlayer?.release()
-//        tts?.stop()
-//        tts?.shutdown()
-//    }
 }
 

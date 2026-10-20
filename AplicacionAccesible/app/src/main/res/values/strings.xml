@@ -1,3 +1,51 @@
 <resources>
     <string name="app_name">AplicacionAccesible</string>
+
+    <!-- Barra superior -->
+    <string name="help">Ayuda</string>
+
+    <!-- Comunicación -->
+    <string name="mode_help_tts">Tú escribes → la app lo dice en voz alta</string>
+    <string name="mode_help_stt">La otra persona habla → la app lo escribe</string>
+    <string name="tts_speak">Decir en voz alta</string>
+    <string name="stt_start">Empezar a escuchar</string>
+    <string name="phrase_already_saved">Ya la tienes guardada</string>
+
+    <!-- Frases rápidas -->
+    <string name="tts_tip">Escribe tu mensaje y toca “Guardar” para tenerlo a mano en Frases rápidas.</string>
+    <string name="delete_phrase">Eliminar frase: %1$s</string>
+
+    <!-- Selector de tono -->
+    <string name="pitch_very_low">Tono muy grave</string>
+    <string name="pitch_low">Tono grave</string>
+    <string name="pitch_normal">Tono normal</string>
+    <string name="pitch_high">Tono agudo</string>
+    <string name="pitch_very_high">Tono muy agudo</string>
+
+    <!-- Modo edición de Sonidos -->
+    <string name="edit_mode_banner">Modo edición. Toca un botón para modificarlo.</string>
+    <string name="edit_mode_exited">Modo edición terminado</string>
+    <string name="edit_button">Editar %1$s</string>
+    <string name="rename_template">Editar Nombre Plantilla</string>
+    <string name="delete_template">Eliminar Plantilla</string>
+    <string name="apply_changes">Aplicar Cambios</string>
+    <string name="rename_template_title">Cambiar nombre</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+
+    <!-- Selector de voz -->
+    <string name="voice_title">Voz</string>
+    <string name="voice_loading">Cargando voces…</string>
+    <string name="voice_default">Predeterminada</string>
+    <string name="voice_missing">No hay voces instaladas para %1$s. Puedes descargarlas desde la configuración de voz del sistema.</string>
+    <string name="voice_open_settings">Abrir configuración de voz</string>
+
+    <!-- Diálogo de botón -->
+    <string name="preview_sound">Escuchar %1$s</string>
+    <string name="color_vermilion">Bermellón</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_yellow">Amarillo</string>
+    <string name="color_bluish_green">Verde azulado</string>
+    <string name="color_orange">Naranja</string>
+    <string name="color_reddish_purple">Púrpura rojizo</string>
 </resources>
