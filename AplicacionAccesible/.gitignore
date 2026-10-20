@@ -9,3 +9,8 @@
 .cxx
 local.properties
 .kotlin/
+
+# Firma de release
+keystore.properties
+*.jks
+*.keystore
