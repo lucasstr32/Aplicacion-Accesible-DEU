@@ -301,6 +301,7 @@ fun SoundButtonItem(
     val contentColor = getContrastColor(backgroundColor)
     val shape = RoundedCornerShape(8.dp)
     val editLabel = stringResource(R.string.edit_button, button.name)
+    val playLabel = stringResource(R.string.play_button, button.name)
 
     Surface(
         modifier = Modifier
@@ -353,8 +354,9 @@ fun SoundButtonItem(
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
                     .then(
-                        if (isEditMode) Modifier.clearAndSetSemantics { contentDescription = editLabel }
-                        else Modifier
+                        Modifier.clearAndSetSemantics {
+                            contentDescription = if (isEditMode) editLabel else playLabel
+                        }
                     )
             ) {
                 Icon(
@@ -435,6 +437,29 @@ val availableIcons = listOf(
     // Objects
     Icons.Default.Smartphone,      // Phone / App
     Icons.Default.ShoppingBag      // Buy / Want
+)
+
+val availableIconNameRes = listOf(
+    R.string.icon_restaurant,
+    R.string.icon_drink,
+    R.string.icon_wc,
+    R.string.icon_hotel,
+    R.string.icon_medical,
+    R.string.icon_happy,
+    R.string.icon_sad,
+    R.string.icon_warning,
+    R.string.icon_handshake,
+    R.string.icon_stop,
+    R.string.icon_favorite,
+    R.string.icon_home,
+    R.string.icon_groups,
+    R.string.icon_music,
+    R.string.icon_play,
+    R.string.icon_check,
+    R.string.icon_cancel,
+    R.string.icon_help,
+    R.string.icon_phone,
+    R.string.icon_shopping
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -610,6 +635,8 @@ fun AddButtonDialog(
                             maxItemsInEachRow = 4 // Control how many columns
                         ) {
                             availableIcons.forEachIndexed { index, icon ->
+                                val iconName = stringResource(availableIconNameRes.getOrElse(index) { R.string.icon_music })
+                                val iconDesc = stringResource(R.string.icon_description, iconName)
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
@@ -622,7 +649,8 @@ fun AddButtonDialog(
                                         .clickable {
                                             selectedIconIndex = index
                                             iconExpanded = false
-                                        },
+                                        }
+                                        .semantics { contentDescription = iconDesc },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -648,6 +676,7 @@ fun AddButtonDialog(
                     items(SafeColors.size) { index ->
                         val color = SafeColors[index]
                         val colorName = stringResource(safeColorNames[index])
+                        val colorDesc = stringResource(R.string.color_description, colorName)
                         Surface(
                             modifier = Modifier
                                 .size(48.dp)
@@ -656,7 +685,7 @@ fun AddButtonDialog(
                                     role = Role.RadioButton,
                                     onClick = { selectedColor = color }
                                 )
-                                .semantics { contentDescription = colorName },
+                                .semantics { contentDescription = colorDesc },
                             shape = CircleShape,
                             color = color,
                             border = if (selectedColor == color)
@@ -786,7 +815,7 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
                             newTemplateName = ""
                         }
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF2E7D32))
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Añadir")
                 }
@@ -833,7 +862,7 @@ fun SoundboardTopBar(soundboardViewModel: SoundboardViewModel) {
                 // No se puede crear otra plantilla mientras se edita una
                 if (!soundboardViewModel.isEditMode) {
                     IconButton(onClick = { showDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Añadir Plantilla")
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_template))
                     }
                 }
             },
@@ -941,6 +970,6 @@ fun EmptyCellPlaceholder(onClick: () -> Unit) {
         ),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Icon(Icons.Default.Add, contentDescription = "Añadir Botón")
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.empty_cell_description))
     }
 }

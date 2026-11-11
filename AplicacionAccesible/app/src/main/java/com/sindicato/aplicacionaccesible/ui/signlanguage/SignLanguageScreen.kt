@@ -18,6 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,11 +51,13 @@ fun SignLanguageGrid(
             itemsIndexed(signItems) { index, item ->
                 val backgroundColor = SafeColors[index % SafeColors.size]
                 val contentColor = getContrastColor(backgroundColor)
+                val itemLabel = stringResource(R.string.sign_item_description, item.word)
                 Surface(
                     onClick = { selectedItem = item },
                     modifier = Modifier
                         .height(80.dp)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .semantics { contentDescription = itemLabel },
                     shape = RoundedCornerShape(8.dp),
                     color = backgroundColor,
                     contentColor = contentColor,
@@ -59,7 +65,9 @@ fun SignLanguageGrid(
                     border = if (isColorblindMode) BorderStroke(2.dp, contentColor) else null
                 ) {
                     Column(
-                        modifier = Modifier.padding(horizontal = 8.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clearAndSetSemantics { contentDescription = itemLabel },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -105,7 +113,10 @@ fun SignLanguageDetail(item: SignLanguageEntity, onBack: () -> Unit) {
             horizontalArrangement = Arrangement.Start
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = stringResource(R.string.sign_back)
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = item.word, style = MaterialTheme.typography.headlineMedium)
@@ -124,7 +135,7 @@ fun SignLanguageDetail(item: SignLanguageEntity, onBack: () -> Unit) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Image(
                     painter = painterResource(id = imageRes),
-                    contentDescription = "Seña de ${item.word}",
+                    contentDescription = stringResource(R.string.sign_detail_image_desc, item.word),
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                     contentScale = ContentScale.Fit
                 )

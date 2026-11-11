@@ -179,9 +179,9 @@ fun MainScreen(
                 title = { 
                     Text(
                         when(selectedTab) {
-                            0 -> "Sonidos"
-                            1 -> "Comunicación"
-                            else -> "Señas"
+                            0 -> stringResource(R.string.title_sounds)
+                            1 -> stringResource(R.string.title_communication)
+                            else -> stringResource(R.string.title_sign_language)
                         }
                     ) 
                 },
@@ -193,7 +193,10 @@ fun MainScreen(
                         )
                     }
                     IconButton(onClick = { showSettings = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Configuración")
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.open_settings)
+                        )
                     }
 
                     // Botón para cambiar el número de columnas en la grilla
@@ -203,7 +206,10 @@ fun MainScreen(
                             val nextCols = if (columnCount >= 4) 2 else columnCount + 1
                             soundboardViewModel.updateColumnCount(nextCols)
                         }) {
-                            Icon(Icons.Default.CalendarViewMonth, contentDescription = "Columnas: ${soundboardViewModel.columnCount}")
+                            Icon(
+                                Icons.Default.CalendarViewMonth,
+                                contentDescription = stringResource(R.string.change_columns, soundboardViewModel.columnCount)
+                            )
                         }
                     }
                 }
@@ -214,20 +220,35 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null) },
-                    label = { Text("Sonidos") }
+                    icon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = stringResource(R.string.nav_sounds_desc)
+                        )
+                    },
+                    label = { Text(stringResource(R.string.nav_sounds)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null) },
-                    label = { Text("Comunicación") }
+                    icon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = stringResource(R.string.nav_communication_desc)
+                        )
+                    },
+                    label = { Text(stringResource(R.string.nav_communication)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.SignLanguage, contentDescription = null) },
-                    label = { Text("Señas") }
+                    icon = {
+                        Icon(
+                            Icons.Default.SignLanguage,
+                            contentDescription = stringResource(R.string.nav_sign_language_desc)
+                        )
+                    },
+                    label = { Text(stringResource(R.string.nav_sign_language)) }
                 )
             }
         }

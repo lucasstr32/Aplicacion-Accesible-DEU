@@ -212,11 +212,11 @@ fun TtsSection(
                 if (status == TtsStatus.REPRODUCIENDO) {
                     Icon(Icons.Default.Refresh, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Hablando...")
+                    Text("Hablando...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.tts_speak))
+                    Text(stringResource(R.string.tts_speak), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             
@@ -264,7 +264,7 @@ fun TtsSection(
             Text(
                 "No tienes frases guardadas aún.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
         } else {
@@ -312,7 +312,8 @@ fun QuickPhraseCard(
         onClick = onClick,
         modifier = modifier.height(60.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
     ) {
         Row(
@@ -325,6 +326,7 @@ fun QuickPhraseCard(
                     .weight(1f)
                     .padding(start = 8.dp, top = 4.dp, bottom = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
@@ -335,7 +337,7 @@ fun QuickPhraseCard(
                     Icons.Default.Close,
                     contentDescription = stringResource(R.string.delete_phrase, phrase.text),
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -395,7 +397,7 @@ fun SttSection(
                         "Presiona el micrófono y empieza a hablar",
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     Text(
@@ -414,7 +416,7 @@ fun SttSection(
         ExtendedFloatingActionButton(
             onClick = onMicClick,
             containerColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primary,
-            contentColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimary,
+            contentColor = if (status == SttStatus.ESCUCHANDO) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimary,
             // Siempre expandido para que la acción tenga texto visible y accesible
             expanded = true,
             icon = {

@@ -1,8 +1,23 @@
 <resources>
-    <string name="app_name">QuieroVoz</string>
+    <string name="app_name">EscuchaMe</string>
 
-    <!-- Barra superior -->
+    <!-- Barra superior y navegación -->
     <string name="help">Ayuda</string>
+    <string name="open_settings">Abrir opciones de configuración</string>
+    <string name="change_columns">Cambiar cantidad de columnas. Actuales: %1$d</string>
+
+    <!-- Títulos de encabezado superior (TopAppBar) -->
+    <string name="title_sounds">Sección: Sonidos</string>
+    <string name="title_communication">Sección: Comunicación</string>
+    <string name="title_sign_language">Sección: Lenguaje de Señas</string>
+
+    <!-- Pestañas de navegación inferior (NavigationBar) -->
+    <string name="nav_sounds">Sonidos</string>
+    <string name="nav_sounds_desc">Pestaña de navegación: Sonidos</string>
+    <string name="nav_communication">Comunicación</string>
+    <string name="nav_communication_desc">Pestaña de navegación: Comunicación</string>
+    <string name="nav_sign_language">Señas</string>
+    <string name="nav_sign_language_desc">Pestaña de navegación: Lenguaje de Señas</string>
 
     <!-- Comunicación -->
     <string name="mode_help_tts">Tú escribes → la app lo dice en voz alta</string>
@@ -26,26 +41,59 @@
     <string name="edit_mode_banner">Modo edición. Toca un botón para modificarlo.</string>
     <string name="edit_mode_exited">Modo edición terminado</string>
     <string name="edit_button">Editar %1$s</string>
+    <string name="play_button">Reproducir %1$s</string>
+    <string name="add_template">Crear nueva plantilla</string>
     <string name="rename_template">Editar Nombre Plantilla</string>
     <string name="delete_template">Eliminar Plantilla</string>
     <string name="apply_changes">Aplicar Cambios</string>
     <string name="rename_template_title">Cambiar nombre</string>
     <string name="save">Guardar</string>
     <string name="delete">Eliminar</string>
+    <string name="empty_cell_description">Añadir botón en casilla vacía</string>
 
-    <!-- Selector de voz -->
+    <!-- Selector de voz y configuración -->
     <string name="voice_title">Voz</string>
     <string name="voice_loading">Cargando voces…</string>
     <string name="voice_default">Predeterminada</string>
     <string name="voice_missing">No hay voces instaladas para %1$s. Puedes descargarlas desde la configuración de voz del sistema.</string>
     <string name="voice_open_settings">Abrir configuración de voz</string>
+    <string name="close_settings">Cerrar configuración</string>
 
     <!-- Diálogo de botón -->
-    <string name="preview_sound">Escuchar %1$s</string>
+    <string name="preview_sound">Probar sonido %1$s</string>
     <string name="color_vermilion">Bermellón</string>
     <string name="color_blue">Azul</string>
     <string name="color_yellow">Amarillo</string>
     <string name="color_bluish_green">Verde azulado</string>
     <string name="color_orange">Naranja</string>
     <string name="color_reddish_purple">Púrpura rojizo</string>
+    <string name="color_description">Color %1$s</string>
+    <string name="icon_description">Icono de %1$s</string>
+
+    <!-- Lenguaje de Señas -->
+    <string name="sign_item_description">Ver seña en lengua de señas para %1$s</string>
+    <string name="sign_detail_image_desc">Ilustración de la seña en lengua de señas para la palabra %1$s</string>
+    <string name="sign_back">Volver a la lista de señas</string>
+
+    <!-- Nombres de iconos -->
+    <string name="icon_restaurant">Restaurante</string>
+    <string name="icon_drink">Bebida</string>
+    <string name="icon_wc">Baño</string>
+    <string name="icon_hotel">Dormir</string>
+    <string name="icon_medical">Salud</string>
+    <string name="icon_happy">Feliz</string>
+    <string name="icon_sad">Triste</string>
+    <string name="icon_warning">Peligro</string>
+    <string name="icon_handshake">Saludar</string>
+    <string name="icon_stop">Parar</string>
+    <string name="icon_favorite">Me gusta</string>
+    <string name="icon_home">Inicio</string>
+    <string name="icon_groups">Familia</string>
+    <string name="icon_music">Música</string>
+    <string name="icon_play">Reproducir</string>
+    <string name="icon_check">Bien</string>
+    <string name="icon_cancel">Mal</string>
+    <string name="icon_help">Pregunta</string>
+    <string name="icon_phone">Teléfono</string>
+    <string name="icon_shopping">Comprar</string>
 </resources>

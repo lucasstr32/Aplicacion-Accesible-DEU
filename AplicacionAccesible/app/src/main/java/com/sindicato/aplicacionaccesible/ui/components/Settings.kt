@@ -70,7 +70,10 @@ fun SettingsDialog(
                         style = MaterialTheme.typography.headlineMedium
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = stringResource(R.string.close_settings)
+                        )
                     }
                 }
 
@@ -124,7 +127,11 @@ fun SettingsDialog(
                         .padding(8.dp)) {
                         OutlinedCard(
                             onClick = { expanded = true },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "Cambiar idioma. Actual: ${selectedLanguage.displayName}"
+                                }
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),
@@ -192,11 +199,13 @@ fun SettingsDialog(
                         Spacer(Modifier.height(24.dp))
 
                         // VELOCIDAD (Speech Rate)
-                        Text("Velocidad: ${String.format("%.1f", currentSpeechRate)}")
+                        val speechRateLabel = "Velocidad de voz: ${String.format("%.1f", currentSpeechRate)}"
+                        Text(speechRateLabel)
                         Slider(
                             value = currentSpeechRate,
                             onValueChange = { soundManagerViewModel.setSpeechRate(it) },
-                            valueRange = 0.5f..2.0f
+                            valueRange = 0.5f..2.0f,
+                            modifier = Modifier.semantics { contentDescription = speechRateLabel }
                         )
                     }
                 }
@@ -355,9 +364,12 @@ fun ThemeButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val themeLabel = "Tema $text"
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.height(60.dp),
+        modifier = modifier
+            .height(60.dp)
+            .semantics { contentDescription = themeLabel },
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
             contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
